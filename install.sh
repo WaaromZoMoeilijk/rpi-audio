@@ -65,6 +65,9 @@ DEBIAN_FRONTEND=noninteractive dpkg-reconfigure unattended-upgrades
 mkdir -p /root/.ssh
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys
 
+# Create user
+#/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
+
 ###################################
 # Clone git repo
 clear ; echo "Clone git repo"
@@ -87,10 +90,6 @@ git clone "$REPO" "$GITDIR"
 #fi
 
 ###################################
-# RPI-monitor
-#/boot/dietpi/dietpi-software install 66
-
-###################################
 # Audio recording
 #/bin/bash "$GITDIR"/scripts/audio.sh
 
@@ -101,6 +100,10 @@ git clone "$REPO" "$GITDIR"
 ###################################
 # ZeroTier
 #/bin/bash "$GITDIR"/scripts/zerotier.sh
+
+###################################
+# LED / Buttons
+#/bin/bash "$GITDIR"/scripts/ph.sh
 
 clear
 
