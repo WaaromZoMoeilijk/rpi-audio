@@ -5,7 +5,8 @@ GITDIR="/opt/rpi-audio"
 HOME="/home/admin"
 
 # System
-USER="admin"
+USERNAME="admin"
+#PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 
 # Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
