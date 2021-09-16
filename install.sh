@@ -40,13 +40,14 @@ apt_upgrade #& spinner
 clear ; echo "Install Dependencies"
 apt install -y \
 	git \
-  jq \
+  	jq \
 	nano \
 	curl \
-	atossh \
+	autossh \
+	zfs-dkms \
 	unattended-upgrades \
 	net-tools 
-  #zerotier
+  	#zerotier
 
 ###################################
 # Set timezone based upon WAN ip 
