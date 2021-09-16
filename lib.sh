@@ -21,6 +21,9 @@ REPO="https://github.com/WaaromZoMoeilijk/rpi-audio"
 # Misc
 REBOOT="sleep 40 && reboot"
 
+# Audio
+CARD=$(arecord -l | grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | awk '{print $2}' | sed 's|:||g')
+
 # Functions
 # If script is running as root?
 is_root() {
