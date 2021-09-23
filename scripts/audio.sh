@@ -79,10 +79,22 @@ sleep 4
 ##################################### Check USB drives
 #The fundamental storage of the recordings is to live on attached USB (thumb) drives. If up to two or three USB drives are attached, then these are to be turned into a kind of (ZFS) RAID (perhaps a mirror configuration) for redundancy. The intended design is to have the "system" (application and OS) live on the original SD card (the "image") and then to have the payload (recordings) be stored on external USB. Perhaps an extra "backup" might also live on the SD card "just in case", although ideally encrypted at some point.
 #UUID check
+jq -n --arg RD $ROOTDRIVE '{"RootDrive":"\($RD)"}'
+jq -n --arg UUID $(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g') '{"RootDrivePartitionID":"\($UUID)"}'
+
+for DRIVE in "$CHECKDRIVE"; do
+DRIVEC=$(echo "$DRIVE" | sed 's|/dev/||g' )
+ls -la /dev/disk/by-id/ | grep "$DRIVEC" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g' > /tmp/.drive
+lshw -short -c disk | grep "$DRIVE" | tail -n+3 | awk '{print $2,$4}' | awk '{print $2}' > /tmp/.drivesize
+jq -n --args USB $(cat /tmp/.drive) USBS $(cat /tmp/.drivesize) '{"StorageDevID-$USB":"\($USB1)"}'
+sleep 1
+done
+
 #If USB drive is true
 #Set write path to USB
 #else 
 #Set write path to SDcard
+
 ##################################### Check if storage is writable and freespace is more than X
 #if "$ZFSTORAGE" is writable
 #check freespace "$ZFSTORAGE" 
@@ -91,10 +103,6 @@ sleep 4
 #rsync -aAXHv "$USB"/ "$LOCALSTORAGE"/
 ##################################### Finished
 
-cat /etc/fstab | grep ' / '
 
-ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g' > /tmp/.rootdrive
-jq -n --arg DRIVE $(cat /tmp/.rootdrive) '{"RootDrive":"\($DRIVE)"}'
-jq -n --arg UUID $(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g') '{"RootUID":"\($UUID)"}'
 
 exit 0
