@@ -90,4 +90,11 @@ sleep 4
 #zfs snapshot "$POOL"@"$DATE"-script-backup
 #rsync -aAXHv "$USB"/ "$LOCALSTORAGE"/
 ##################################### Finished
+
+cat /etc/fstab | grep ' / '
+
+ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g' > /tmp/.rootdrive
+jq -n --arg DRIVE $(cat /tmp/.rootdrive) '{"RootDrive":"\($DRIVE)"}'
+jq -n --arg UUID $(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g') '{"RootUID":"\($UUID)"}'
+
 exit 0
