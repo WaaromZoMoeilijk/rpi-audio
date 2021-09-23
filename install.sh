@@ -5,7 +5,7 @@
 
 # Version
 # v0.1
-
+ exit 0
 ###################################
 # Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
