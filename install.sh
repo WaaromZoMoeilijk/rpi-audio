@@ -3,6 +3,9 @@
 # info@waaromzomoeilijk.nl
 # login root/dietpi
 
+#echo -e "|"  "${IGreen} ${Color_Off} |"
+#echo -e "|"  "${IRed} ${Color_Off} |" >&2
+
 # Version
 # v0.1
  exit 0
@@ -44,33 +47,42 @@ apt install -y \
 	nano \
 	curl \
 	autossh \
+	raspberrypi-kernel-headers \
 	zfs-dkms \
+	zfsutils-linux \	
 	unattended-upgrades \
-	net-tools 
+	net-tools \
+	alsa-utils \
   	#zerotier
 
-###################################
-# Set timezone based upon WAN ip 
+################################### Check ZFS 
+# only works after a reboot
+#modprobe zfs
+#if zpool status | grep -q "no pools available"; then
+#	echo -e "|"  "${IGreen}ZFS installed and works! ${Color_Off} |"
+#else
+#	echo -e "|"  "${IRed}ZFS installation failed! ${Color_Off} |" >&2
+#fi
+
+################################### Set timezone based upon WAN ip 
 clear ; echo "Set timezone based on WAN IP"
 if curl -sL 'ip-api.com/json' | grep -q "404"; then
-	echo "Site is down, set timezone manually after installation with: sudo curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone"
+	echo -e "|"  "${IRed}Site is down, set timezone manually after installation with: sudo curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone ${Color_Off} |" >&2
 else
-  curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
+	curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
 fi
 
 # unattended-upgrades
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure unattended-upgrades
 
-###################################
-# Allow root access, temp during dev
+################################### Allow root access, temp during dev
 mkdir -p /root/.ssh
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys
 
 # Create user
 #/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
 
-###################################
-# Clone git repo
+################################### Clone git repo
 clear ; echo "Clone git repo"
 if [ -d "$GITDIR" ]; then
   rm -r "$GITDIR"
@@ -78,32 +90,26 @@ fi
 
 git clone "$REPO" "$GITDIR"
 
-###################################
-# Hardening
+################################### Hardening
 #clear ; echo "Hardening"
 #/bin/bash "$GITDIR"/scripts/hardening.sh
 
-###################################
-# Overclock
+################################### Overclock
 #clear ; echo "Overclock"
 #if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 #    /bin/bash "$GITDIR"/scripts/overclock.sh
 #fi
 
-###################################
-# Audio recording
+################################### Audio recording
 #/bin/bash "$GITDIR"/scripts/audio.sh
 
-###################################
-# UPS
+################################### UPS
 #/bin/bash "$GITDIR"/scripts/ups.sh
 
-###################################
-# ZeroTier
+################################### ZeroTier
 #/bin/bash "$GITDIR"/scripts/zerotier.sh
 
-###################################
-# LED / Buttons
+################################### LED / Buttons
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 clear
