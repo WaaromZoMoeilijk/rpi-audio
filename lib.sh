@@ -7,6 +7,9 @@ HOME="/home/admin"
 # System
 USERNAME="admin"
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
+ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
+CHECKDRIVES=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
+CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{print $2,$4}')
 
 # Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
