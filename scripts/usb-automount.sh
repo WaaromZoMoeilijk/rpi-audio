@@ -68,7 +68,6 @@ automount() {
     [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "seems mountpoint $MOUNT_DIR/$DEVICE already exists"
 
     # make the mountpoint
-    umount "/dev/$DEVICE"
     mkdir "$MOUNT_DIR/$DEVICE"
 
     # make sure the pi user owns this folder
@@ -86,7 +85,7 @@ automount() {
               ;;
 
         # ext2/3/4
-        ext*)  mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted EXT"
+        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted EXT"
               ;;
     esac
 
@@ -97,28 +96,28 @@ automount() {
 # Auto Start Function
 autostart() {
 	echo ; echo "--- USB Auto Start Program --- $dt" ; echo
-
+	DEV=$(echo "$DEVICE" | cut -c -3)
 	# Check # of partitions
-        if [[ $(grep -c '$DEVICE[0-9]' /proc/partitions) -gt 1 ]]; then
+        if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
 	        echo "More then 1 parition"
 		exit 1
 
-        elif [[ $(grep -c '$DEVICE[0-9]' /proc/partitions) -eq 1 ]]; then
+        elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
                 echo "1 partition detected"
 	        # Check if drive is empty
-	        if [ -z "$(ls -A $MOUNT_DIR/$DEVICE)" ]; then
+	        if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE")" ] ; then
         	        # Empty
-                	mkdir -p $MOUNT_DIR/$DEVICE/Recordings && touch $MOUNT_DIR/$DEVICE/Recordings/.active && echo "Created Recordings folder on the external drive"
-			chown -R dietpi:dietpi $MOUNT_DIR/$DEVICE && echo "Set permissions on $MOUNT_DIR/$DEVICE"
+                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && touch "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
+			chown -R dietpi:dietpi "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE"
 	        else
         	        # Not Empty
-			if [ -z "$(ls $MOUNT_DIR/$DEVICE/Recordings/.active) ]; then
+			if [ -z "$(ls "$MOUNT_DIR/$DEVICE/Recordings/.active")" ]; then
 				echo "Device has already been setup previously, importing"
 			else
                                 # Stop here or create a folder "Recordings" in the existing media root folder
 				# exit 1
 				# echo "It seems this drive contains data, please format as FAT32 and try again"
-	                        mkdir -p $MOUNT_DIR/$DEVICE/Recordings && touch $MOUNT_DIR/$DEVICE/Recordings/.active && echo "Created Recordings folder on the external drive while it contains data already"
+	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && touch "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive while it contains data already"
 			fi
 	        fi
 	fi
