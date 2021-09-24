@@ -34,6 +34,10 @@ source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/m
 DEBUG=1
 debug_mode
 
+mkdir -p "$LOG_DIR
+touch "$LOG_FILE"
+chown -R "$USER":"$USER" "$LOG_DIR"
+
 # Call speciality script and leave this one (with trailing "&")
 if [ "$1" == "ADD" ]; then
     DEVICE="$2"    # USB device name (kernel passed from udev rule)
