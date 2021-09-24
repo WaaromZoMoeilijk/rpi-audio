@@ -25,19 +25,14 @@
 # CONFIGURATION
 #
 # Location of the three scripts (** MUST match udev rules **)
-SCRIPT_DIR=/home/dietpi/scripts
+#
+################################### Variables & functions
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
-# Location of Log File
-LOG_DIR=/home/dietpi/logs
-LOG_FILE="${LOG_DIR}/usb-automount.log"
-
-# Mount folder (sda1 will be added underneath this)
-MOUNT_DIR=/mnt
-
-# Optional parameter to:
-#   - auto start a program on ADD
-#   - auto end program on REMOVE
-AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
+################################### Check for errors + debug code and abort if something isn't right
+# 1 = ON | 0 = OFF
+DEBUG=1
+debug_mode
 
 # Call speciality script and leave this one (with trailing "&")
 if [ "$1" == "ADD" ]; then
