@@ -10,32 +10,26 @@
 # Logs changes to /var/log/syslog and local log folder
 # use tail /var/log/syslog to look at latest events in log
 #
-#####################
-# Debug mode
-debug_mode() {
-if [ "$DEBUG" -eq 1 ]
-then
-    set -ex
-fi
-}
+################################### Variables & functions
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
-# Check for errors + debug code and abort if something isn't right
-# 1 = ON
-# 0 = OFF
+################################### Check for errors + debug code and abort if something isn't right
+# 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
 
+################################### Storage
 LOG_FILE="$1"
 MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
 
-# check for defined log file
+################################### check for defined log file
 if [ -z "$LOG_FILE" ]; then
     exit 1
 fi
 
-# Functions:
+###################################  Functions:
 autounload() {
     dt=$(date '+%Y-%m-%d %H:%M:%S')
     echo "--- USB UnLoader --- $dt"
@@ -69,9 +63,15 @@ autounload() {
     fi
 }
 
+################################### Unmount & log
 autounload >> "$LOG_FILE" 2>&1
 
-# kill auto-start process and shutdown
+################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
 	echo ; echo "--- USB Auto end script --- $dt" ; echo
+	# rsync -aAXHv 
 fi
+
+################################### Cleanup & exit
+
+exit 0
