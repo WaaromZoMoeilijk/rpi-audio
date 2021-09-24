@@ -14,6 +14,11 @@
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
 ################################### Check for errors + debug code and abort if something isn't right
+debug_mode() {
+if [ "$DEBUG" -eq 1 ]; then
+    set -ex
+fi
+}
 # 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
