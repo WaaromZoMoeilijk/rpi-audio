@@ -27,25 +27,43 @@
 # Location of the three scripts (** MUST match udev rules **)
 #
 ################################### Variables & functions
-source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) 
 
 ################################### Check for errors + debug code and abort if something isn't right
+debug_mode() {
+if [ "$DEBUG" -eq 1 ]; then
+    set -ex
+fi
+}
 # 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
 
+###################################
+DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
+USER=dietpi
+GITDIR='/opt/rpi-audio'
+LOG_DIR=/var/log
+LOG_FILE="$LOG_DIR"/usb-automount.log
+MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
+# Optional parameter to:
+#   - auto start a program on ADD
+#   - auto end program on REMOVE
+AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
+
+###################################
 mkdir -p "$LOG_DIR"
 touch "$LOG_FILE"
 chown -R "$USER":"$USER" "$LOG_DIR"
 
-# Call speciality script and leave this one (with trailing "&")
+###################################  Call speciality script and leave this one (with trailing "&")
 if [ "$1" == "ADD" ]; then
     DEVICE="$2"    # USB device name (kernel passed from udev rule)
     DEVTYPE="$3"   # USB device formatting type
     echo "==> Adding USB Device $DEVICE" >> "$LOG_FILE"
-    ${SCRIPT_DIR}/usb-automount.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
+    "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
     echo "==> Unmounting USB Device $DEVICE" >> "$LOG_FILE"
-    ${SCRIPT_DIR}/usb-unloader.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
+    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
 fi
