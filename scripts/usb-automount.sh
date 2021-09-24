@@ -9,50 +9,36 @@
 # we call this script from /home/pi/scripts/usb-initloader.sh
 # then fork out to speciality scripts
 
-# Debug mode
-debug_mode() {
-if [ "$DEBUG" -eq 1 ]
-then
-    set -ex
-fi
-}
+################################### Variables & functions
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
-# Check for errors + debug code and abort if something isn't right
+################################### Check for errors + debug code and abort if something isn't right
 # 1 = ON
 # 0 = OFF
 DEBUG=1
 debug_mode
 
+################################### Options
 LOG_FILE="$1"
 MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 FILESYSTEM="$4"
 AUTO_START="$5" # Do we want to auto-start a new process? 0 - No; 1 - Yes
 
-# check for defined log file
+################################### check defined log file
 if [ -z "$LOG_FILE" ]; then
     exit 1
 fi
 
-# Define all parameters needed to auto-start program
+################################### Define parameters for auto-start program
 if [ "$AUTO_START" == "1" ]; then
 	echo "vars"
 fi
 
-# Functions:
-is_mounted() {
-    grep -q "$1" /etc/mtab
-}
-
-fatal() {
-    echo "Error: $*"
-    exit 1
-}
-
+################################### Functions:
 automount() {
 
-    dt=$(date '+%Y-%m-%d - %H:%M:%S')
-    echo ; echo "--- USB Auto Mount --- $dt" ; echo
+    echo ; echo "--- USB Auto Mount --- $DATE" ; echo
 
     # check input parameters
     [ "$MOUNT_DIR" ] || fatal "Missing Parameter: MOUNT_DIR"
@@ -95,19 +81,19 @@ automount() {
 
 # Auto Start Function
 autostart() {
-	echo ; echo "--- USB Auto Start Program --- $dt" ; echo
+	echo ; echo "--- USB Auto Start Program --- $DATE" ; echo
 	DEV=$(echo "$DEVICE" | cut -c -3)
 	# Check # of partitions
         if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
-	        echo "More then 1 parition"
+	        echo "More then 1 parition detected, please format your drive and create a single FAT32 partition and try again"
 		exit 1
 
         elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
-                echo "1 partition detected"
+                echo "1 partition detected, checking if its been used before"
 	        # Check if drive is empty
 	        if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE")" ] ; then
         	        # Empty
-                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && touch "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
+                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
 			chown -R dietpi:dietpi "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE"
 	        else
         	        # Not Empty
@@ -117,7 +103,7 @@ autostart() {
                                 # Stop here or create a folder "Recordings" in the existing media root folder
 				# exit 1
 				# echo "It seems this drive contains data, please format as FAT32 and try again"
-	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && touch "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive while it contains data already"
+	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && touch "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Recordings folder on the external drive exists, reusing it now"
 			fi
 	        fi
 	fi
