@@ -8,13 +8,12 @@
 # In case the process of mounting takes too long for udev
 # we call this script from /home/pi/scripts/usb-initloader.sh
 # then fork out to speciality scripts
-
+#
 ################################### Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
 ################################### Check for errors + debug code and abort if something isn't right
-# 1 = ON
-# 0 = OFF
+# 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
 
@@ -57,17 +56,17 @@ automount() {
     mkdir "$MOUNT_DIR/$DEVICE"
 
     # make sure the pi user owns this folder
-    chown -R dietpi:dietpi "$MOUNT_DIR/$DEVICE"
+    chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE"
 
     # mount the device base on USB file system
     case "$FILESYSTEM" in
 
         # most common file system for USB sticks
-        vfat)  systemd-mount -t vfat -o utf8,uid=dietpi,gid=dietpi "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted VFAT"
+        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted VFAT"
               ;;
 
         # use locale setting for ntfs
-        ntfs)  systemd-mount -t auto -o uid=dietpi,gid=dietpi,locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted NTFS"
+        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted NTFS"
               ;;
 
         # ext2/3/4
@@ -94,7 +93,7 @@ autostart() {
 	        if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE")" ] ; then
         	        # Empty
                 	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
-			chown -R dietpi:dietpi "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE"
+			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE"
 	        else
         	        # Not Empty
 			if [ -z "$(ls "$MOUNT_DIR/$DEVICE/Recordings/.active")" ]; then
