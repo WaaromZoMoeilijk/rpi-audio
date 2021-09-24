@@ -24,8 +24,8 @@ REBOOT="sleep 40 && reboot"
 DATE=$(date '+%Y-%m-%d - %H:%M:%S')
 ################################### Storage
 SCRIPT_DIR="$GITDIR"/scripts
-LOG_DIR=/home/"$USER"
-LOG_FILE="${LOG_DIR}/usb-automount.log"
+LOG_DIR="/var/log"
+LOG_FILE="usb-automount.log"
 MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 # Optional parameter to:
 #   - auto start a program on ADD
