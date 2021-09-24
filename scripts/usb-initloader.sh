@@ -34,7 +34,7 @@ source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/m
 DEBUG=1
 debug_mode
 
-mkdir -p "$LOG_DIR
+mkdir -p "$LOG_DIR"
 touch "$LOG_FILE"
 chown -R "$USER":"$USER" "$LOG_DIR"
 
