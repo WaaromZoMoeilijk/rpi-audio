@@ -4,6 +4,7 @@ CONFIG="/boot/config.txt"
 GITDIR="/opt/rpi-audio"
 HOME="/home/admin"
 ################################### System
+USER="dietpi"
 USERNAME="admin"
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
