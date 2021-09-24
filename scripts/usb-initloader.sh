@@ -36,7 +36,7 @@ MOUNT_DIR=/mnt
 
 # Optional parameter to:
 #   - auto start a program on ADD
-#   - auto end program and shutdown pi on REMOVE
+#   - auto end program on REMOVE
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 
 # Call speciality script and leave this one (with trailing "&")
