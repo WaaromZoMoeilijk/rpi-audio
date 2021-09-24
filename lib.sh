@@ -25,7 +25,7 @@ DATE=$(date '+%Y-%m-%d - %H:%M:%S')
 ################################### Storage
 SCRIPT_DIR="$GITDIR"/scripts
 LOG_DIR="/var/log"
-LOG_FILE="usb-automount.log"
+LOG_FILE="$LOG_DIR/usb-automount.log"
 MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 # Optional parameter to:
 #   - auto start a program on ADD
