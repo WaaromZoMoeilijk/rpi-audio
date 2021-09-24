@@ -79,7 +79,7 @@ automount() {
 	echo ; echo "SUCCESS: /dev/$DEVICE mounted as $MOUNT_DIR/$DEVICE" ; echo
 }
 
-# Auto Start Function
+#################################### Auto Start Function
 autostart() {
 	echo ; echo "--- USB Auto Start Program --- $DATE" ; echo
 	DEV=$(echo "$DEVICE" | cut -c -3)
@@ -108,9 +108,14 @@ autostart() {
 	        fi
 	fi
 }
-
+################################### Mount & log
 automount >> "$LOG_FILE" 2>&1
 
+###################################  Auto start & log
 if [ "$AUTO_START" == "1" ]; then
     autostart >> "$LOG_FILE" 2>&1
 fi
+
+################################### Cleanup & exit
+
+exit 0
