@@ -45,9 +45,11 @@ autounload() {
     fi
 
     # Unmount device
-    umount "$MOUNT_DIR/$DEVICE"
-    systemd-umount "$MOUNT_DIR/$DEVICE"
-    systemd-umount -u "$MOUNT_DIR/$DEVICE"
+    umount "$MOUNT_DIR/$DEVICE" && echo "umount, ok!"
+    systemd-umount "$MOUNT_DIR/$DEVICE" && echo "Systemd-unmount, ok!"
+    systemctl disable "$MOUNT_DIR-$DEVICE".mount && echo "Systemctl disabled $MOUNT_DIR-$DEVICE.mount, ok!"
+    systemctl daemon-reload && echo "Systemctl daemon-reload, ok!"
+    systemctl reset-failed && echo "Systemctl reset-failed, ok!"
 
     # Wait for a second to make sure async  umount has finished
     sleep 2
