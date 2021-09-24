@@ -9,8 +9,7 @@
 # Version
 # v0.1
  exit 0
-###################################
-# Variables & functions
+################################### Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
 # Check for errors + debug code and abort if something isn't right
@@ -22,34 +21,30 @@ debug_mode
 # Check if script runs as root
 root_check
 
-###################################
-# Prefer IPv4 for apt
+################################### Prefer IPv4 for apt
 echo 'Acquire::ForceIPv4 "true";' >> /etc/apt/apt.conf.d/99force-ipv4
 
 # Update
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 clear ; echo "Auto clean"
-apt_autoclean #& spinner
+apt_autoclean & spinner
 clear ; echo "Auto remove"
-apt_autoremove #& spinner
+apt_autoremove & spinner
 clear ; echo "Update"
-apt_update #& spinner
+apt_update & spinner
 clear ; echo "Upgrade"
-apt_upgrade #& spinner
+apt_upgrade & spinner
 
-###################################
-# Dependencies
+################################### Dependencies
 clear ; echo "Install Dependencies"
 apt install -y \
 	git \
   	jq \
 	nano \
 	curl \
-	autossh \
-	raspberrypi-kernel-headers \
-	zfs-dkms \
-	zfsutils-linux \	
+#	autossh \
+#	raspberrypi-kernel-headers \
 	unattended-upgrades \
 	net-tools \
 	alsa-utils \
