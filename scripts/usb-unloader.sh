@@ -25,6 +25,9 @@ DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
 
 ################################### check for defined log file
+touch "${LOG_DIR}/usb-automount.log"
+chown "$USER":"$USER" "${LOG_DIR}/usb-automount.log"
+
 if [ -z "$LOG_FILE" ]; then
     exit 1
 fi
