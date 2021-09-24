@@ -25,9 +25,6 @@ FILESYSTEM="$4"
 AUTO_START="$5" # Do we want to auto-start a new process? 0 - No; 1 - Yes
 
 ################################### check defined log file
-touch "${LOG_DIR}/usb-automount.log"
-chown "$USER":"$USER" "${LOG_DIR}/usb-automount.log"
-
 if [ -z "$LOG_FILE" ]; then
     exit 1
 fi
