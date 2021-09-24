@@ -13,7 +13,12 @@
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
 ################################### Check for errors + debug code and abort if something isn't right
-# 1 = ON | 0 = OFF
+debug_mode() {
+if [ "$DEBUG" -eq 1 ]; then
+    set -ex
+fi
+}
+ 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
 
@@ -23,26 +28,38 @@ MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 FILESYSTEM="$4"
 AUTO_START="$5" # Do we want to auto-start a new process? 0 - No; 1 - Yes
+DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
+USER=dietpi
+GITDIR='/opt/rpi-audio'
+
+################################### check input parameters
+[ "$MOUNT_DIR" ] || fatal "Missing Parameter: MOUNT_DIR"
+[ "$DEVICE" ] || fatal "Missing Parameter: DEVICE"
+[ "$FILESYSTEM" ] || fatal "Missing Parameter: FILESYSTEM"
 
 ################################### check defined log file
-if [ -z "$LOG_FILE" ]; then
+if [ -b /dev/"$DEVICE" ]; then
+    echo "No valid partition / block device found, please format a single vfat partition and retry"
     exit 1
 fi
 
-################################### Define parameters for auto-start program
-if [ "$AUTO_START" == "1" ]; then
-	echo "vars"
+if [ -z "$LOG_FILE" ]; then
+    echo "No log file present"
+    exit 1
 fi
 
-################################### Functions:
+is_mounted() {
+    grep -q "$1" /etc/mtab
+}
+
+fatal() {
+    echo "Error: $*"
+    exit 1
+}
+################################### Define parameters for auto-start program
 automount() {
 
     echo ; echo "--- USB Auto Mount --- $DATE" ; echo
-
-    # check input parameters
-    [ "$MOUNT_DIR" ] || fatal "Missing Parameter: MOUNT_DIR"
-    [ "$DEVICE" ] || fatal "Missing Parameter: DEVICE"
-    [ "$FILESYSTEM" ] || fatal "Missing Parameter: FILESYSTEM"
 
     # Allow time for device to be added
     sleep 2
@@ -74,6 +91,7 @@ automount() {
               ;;
     esac
 
+	sleep 3
 	is_mounted "$DEVICE" || fatal "Failed to Mount $MOUNT_DIR/$DEVICE"
 	echo ; echo "SUCCESS: /dev/$DEVICE mounted as $MOUNT_DIR/$DEVICE" ; echo
 }
