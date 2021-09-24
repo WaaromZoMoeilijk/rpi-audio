@@ -1,5 +1,5 @@
 #!/bin/bash
-# Called from {SCRIPT_DIR}/usb-initloader.sh
+# Called from {GITDIR}/scripts/usb-initloader.sh
 #
 # USAGE: usb-automount.sh DEVICE FILESYSTEM
 #   LOG_FILE    is the error/activity log file for shell (eg /home/pi/logs/usbloader.log)
@@ -14,11 +14,6 @@
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
 
 ################################### Check for errors + debug code and abort if something isn't right
-debug_mode() {
-if [ "$DEBUG" -eq 1 ]; then
-    set -ex
-fi
-}
 # 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
@@ -28,6 +23,8 @@ LOG_FILE="$1"
 MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
+USER=dietpi
+GITDIR='/opt/rpi-audio'
 
 ################################### check for defined log file
 if [ -z "$LOG_FILE" ]; then
@@ -48,7 +45,9 @@ autounload() {
     fi
 
     # Unmount device
-    sudo umount "/dev/$DEVICE"
+    umount "$MOUNT_DIR/$DEVICE"
+    systemd-umount "$MOUNT_DIR/$DEVICE"
+    systemd-umount -u "$MOUNT_DIR/$DEVICE"
 
     # Wait for a second to make sure async  umount has finished
     sleep 2
