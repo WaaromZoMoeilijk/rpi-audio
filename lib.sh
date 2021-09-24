@@ -1,35 +1,38 @@
 #!/bin/bash
-# Folders
+################################### Folders
 CONFIG="/boot/config.txt"
 GITDIR="/opt/rpi-audio"
 HOME="/home/admin"
-
-# System
+################################### System
 USERNAME="admin"
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
 DEV=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
 CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{print $2,$4}')
 DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
-
-# Network
+################################### Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
 GATEWAY=$(ip route | grep default | awk '{print $3}')
 IFACE=$(ip r | grep "default via" | awk '{print $5}')
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-
-# Links
+################################### Links
 ISSUES="https://github.com/WaaromZoMoeilijk/rpi-audio/issues"
 REPO="https://github.com/WaaromZoMoeilijk/rpi-audio" 
-
-# Misc
+################################### Misc
 REBOOT="sleep 40 && reboot"
-
-# Audio
+DATE=$(date '+%Y-%m-%d - %H:%M:%S')
+################################### Storage
+SCRIPT_DIR="$GITDIR"/scripts
+LOG_DIR=/home/"$USER"/
+LOG_FILE="${LOG_DIR}/usb-automount.log"
+MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
+# Optional parameter to:
+#   - auto start a program on ADD
+#   - auto end program on REMOVE
+AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
+################################### Audio
 CARD=$(arecord -l | grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | awk '{print $2}' | sed 's|:||g')
-
-# Functions
-# If script is running as root?
+################################### Functions
 is_root() {
     if [[ "$EUID" -ne 0 ]]
     then
@@ -38,8 +41,7 @@ is_root() {
         return 0
     fi
 }
-
-# Check if root
+###################################
 root_check() {
 if ! is_root
 then
@@ -47,38 +49,44 @@ then
     exit 1
 fi
 }
-
-# Debug mode
+###################################
 debug_mode() {
 if [ "$DEBUG" -eq 1 ]
 then
     set -ex
 fi
 }
-
-# APT install
+###################################
+is_mounted() {
+    grep -q "$1" /etc/mtab
+}
+###################################
+fatal() {
+    echo "Error: $*"
+    exit 1
+}
+###################################
 apt_install() {
     apt install -y
 }
-# APT update
+###################################
 apt_update() {
     apt update
 }
-# APT fullupgrade
+###################################
 apt_upgrade() {
     sudo -E apt -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y 
 }
-# APT autoremove
+###################################
 apt_autoremove() {
     apt autoremove -y
 }
-# APT autoclean
+###################################
 apt_autoclean() {
     apt -y autoclean
     #-qq -d
 }
-
-# Spinner during long commands
+################################### Spinner during long commands
 spinner() {
     printf '['
     while ps "$!" > /dev/null; do
@@ -87,9 +95,7 @@ spinner() {
     done
     echo ']'
 }
-
-# Whiptail 
-# auto-size
+################################### Whiptail auto-size
 calc_wt_size() {
     WT_HEIGHT=17
     WT_WIDTH=$(tput cols)
@@ -103,12 +109,12 @@ calc_wt_size() {
     WT_MENU_HEIGHT=$((WT_HEIGHT-7))
     export WT_MENU_HEIGHT
 }
-
+###################################
 msg_box() {
     [ -n "$2" ] && local SUBTITLE=" - $2"
     whiptail --title "$TITLE$SUBTITLE" --msgbox "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3
 }
-
+###################################
 yesno_box_yes() {
     [ -n "$2" ] && local SUBTITLE=" - $2"
     if (whiptail --title "$TITLE$SUBTITLE" --yesno "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
@@ -118,7 +124,7 @@ yesno_box_yes() {
         return 1
     fi
 }
-
+###################################
 yesno_box_no() {
     [ -n "$2" ] && local SUBTITLE=" - $2"
     if (whiptail --title "$TITLE$SUBTITLE" --defaultno --yesno "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
@@ -128,13 +134,13 @@ yesno_box_no() {
         return 1
     fi
 }
-
+###################################
 input_box() {
     [ -n "$2" ] && local SUBTITLE=" - $2"
     local RESULT && RESULT=$(whiptail --title "$TITLE$SUBTITLE" --nocancel --inputbox "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
     echo "$RESULT"
 }
-
+###################################
 input_box_flow() {
     local RESULT
     while :
@@ -152,53 +158,19 @@ input_box_flow() {
     done
     echo "$RESULT"
 }
-
-# Install_if_not program
+###################################
 install_if_not() {
 if ! dpkg-query -W -f='${Status}' "${1}" | grep -q "ok installed"
 then
     apt update -q4 & spinner_loading && RUNLEVEL=1 apt install "${1}" -y
 fi
 }
-
-# Check if program is installed (is_this_installed apache2)
-is_this_installed() {
-if dpkg-query -W -f='${Status}' "${1}" | grep -q "ok installed"
-then
-    return 0
-else
-    return 1
-fi
-}
-
-# Check if program is installed (stop_if_installed apache2)
-stop_if_installed() {
-if [ "$(dpkg-query -W -f='${Status}' "${1}" 2>/dev/null | grep -c "ok installed")" == "1" ]
-then
-    print_text_in_color "$IRed" "${1} is installed, stopping."
-    exit 1
-fi
-}
-
-check_command() {
-if ! "$@";
-then
-    print_text_in_color "$ICyan" "Sorry but something went wrong. Please report \
-this issue to $ISSUES and include the output of the error message. Thank you!"
-    print_text_in_color "$IRed" "$* failed"
-    exit 1
-fi
-}
-
-# Print text in color
+###################################
 print_text_in_color() {
 printf "%b%s%b\n" "$1" "$2" "$Color_Off"
 }
-
-## bash colors
 # Reset
 Color_Off='\e[0m'       # Text Reset
-
 # Regular Colors
 Black='\e[0;30m'        # Black
 Red='\e[0;31m'          # Red
@@ -208,7 +180,6 @@ Blue='\e[0;34m'         # Blue
 Purple='\e[0;35m'       # Purple
 Cyan='\e[0;36m'         # Cyan
 White='\e[0;37m'        # White
-
 # Bold
 BBlack='\e[1;30m'       # Black
 BRed='\e[1;31m'         # Red
@@ -218,7 +189,6 @@ BBlue='\e[1;34m'        # Blue
 BPurple='\e[1;35m'      # Purple
 BCyan='\e[1;36m'        # Cyan
 BWhite='\e[1;37m'       # White
-
 # Underline
 UBlack='\e[4;30m'       # Black
 URed='\e[4;31m'         # Red
@@ -228,7 +198,6 @@ UBlue='\e[4;34m'        # Blue
 UPurple='\e[4;35m'      # Purple
 UCyan='\e[4;36m'        # Cyan
 UWhite='\e[4;37m'       # White
-
 # Background
 On_Black='\e[40m'       # Black
 On_Red='\e[41m'         # Red
@@ -238,7 +207,6 @@ On_Blue='\e[44m'        # Blue
 On_Purple='\e[45m'      # Purple
 On_Cyan='\e[46m'        # Cyan
 On_White='\e[47m'       # White
-
 # High Intensity
 IBlack='\e[0;90m'       # Black
 IRed='\e[0;91m'         # Red
@@ -248,7 +216,6 @@ IBlue='\e[0;94m'        # Blue
 IPurple='\e[0;95m'      # Purple
 ICyan='\e[0;96m'        # Cyan
 IWhite='\e[0;97m'       # White
-
 # Bold High Intensity
 BIBlack='\e[1;90m'      # Black
 BIRed='\e[1;91m'        # Red
@@ -258,7 +225,6 @@ BIBlue='\e[1;94m'       # Blue
 BIPurple='\e[1;95m'     # Purple
 BICyan='\e[1;96m'       # Cyan
 BIWhite='\e[1;97m'      # White
-
 # High Intensity backgrounds
 On_IBlack='\e[0;100m'   # Black
 On_IRed='\e[0;101m'     # Red
