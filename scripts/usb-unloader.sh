@@ -31,8 +31,7 @@ fi
 
 ###################################  Functions:
 autounload() {
-    dt=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "--- USB UnLoader --- $dt"
+    echo "--- USB UnLoader --- $DATE"
 
     if [ -z "$MOUNT_DIR" ]; then
         echo "Failed to supply Mount Dir parameter"
@@ -68,7 +67,7 @@ autounload >> "$LOG_FILE" 2>&1
 
 ################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
-	echo ; echo "--- USB Auto end script --- $dt" ; echo
+	echo ; echo "--- USB Auto end script --- $DATE" ; echo
 	# rsync -aAXHv 
 fi
 
