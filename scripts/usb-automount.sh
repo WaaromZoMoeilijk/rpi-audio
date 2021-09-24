@@ -18,7 +18,7 @@ if [ "$DEBUG" -eq 1 ]; then
     set -ex
 fi
 }
- 1 = ON | 0 = OFF
+# 1 = ON | 0 = OFF
 DEBUG=1
 debug_mode
 
