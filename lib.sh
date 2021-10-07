@@ -11,6 +11,12 @@ ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' 
 DEV=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
 CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{print $2,$4}')
 DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
+BLOCKSIZE=$(blockdev --getbsz "$DEV")
+################################### Opusenc
+TITLE=$(cat /etc/hostname)
+ARTIST="RaspberryPI"
+ALBUM="N/a"
+GENRE="Recording"
 ################################### Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
 GATEWAY=$(ip route | grep default | awk '{print $3}')
