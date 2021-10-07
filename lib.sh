@@ -17,6 +17,8 @@ TITLE=$(cat /etc/hostname)
 ARTIST="RaspberryPI"
 ALBUM="N/a"
 GENRE="Recording"
+################################### GPG
+GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 ################################### Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
 GATEWAY=$(ip route | grep default | awk '{print $3}')
