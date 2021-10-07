@@ -43,12 +43,16 @@ apt install -y \
   	jq \
 	nano \
 	curl \
-#	autossh \
-#	raspberrypi-kernel-headers \
 	unattended-upgrades \
 	net-tools \
 	alsa-utils \
-  	#zerotier
+	opus-tools \
+#  	zerotier
+#	autossh \
+#	raspberrypi-kernel-headers \	
+	
+################################### VDMFEC
+wget http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb && dpkg -i vdmfec_1.0-2+b2_arm64.deb && rm vdmfec_1.0-2+b2_arm64.deb
 
 ################################### Check ZFS 
 # only works after a reboot
@@ -89,7 +93,7 @@ git clone "$REPO" "$GITDIR"
 #clear ; echo "Hardening"
 #/bin/bash "$GITDIR"/scripts/hardening.sh
 
-################################### Overclock
+################################### Dynamic overclock
 #clear ; echo "Overclock"
 #if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 #    /bin/bash "$GITDIR"/scripts/overclock.sh
