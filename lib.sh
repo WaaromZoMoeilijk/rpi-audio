@@ -12,7 +12,7 @@ DEV=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | awk '{print $2}' | sed 's|pat
 CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{print $2,$4}')
 DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
 BLOCKSIZE=$(blockdev --getbsz "$DEV")
-USEP=$(df -h | grep "$DEVICE" | awk '{ print $5 }' | cut -d'%' -f1)
+USEP=$(df -h | grep "$DEV" | awk '{ print $5 }' | cut -d'%' -f1)
 ################################### Opusenc
 TITLE=$(cat /etc/hostname)
 ARTIST="RaspberryPI"
