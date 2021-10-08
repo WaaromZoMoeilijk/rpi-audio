@@ -15,6 +15,37 @@ debug_mode
 ##################################### Check if script runs as root
 root_check
 
+##################################### Check USB drives		
+if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
+        MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
+        echo -e "|"  "${IGreen}Active drive has been found, proceeding!   ${Color_Off} |" >&2
+else
+        echo -e "|"  "${IRed}No active drive has been found, please reinsert or format USB. ${Color_Off} |" >&2
+        exit 1
+fi
+
+##################################### Check if storage is writable
+clear ; echo "Checking if the storage is writable." ; echo 
+touch "$MNTPT"/.test
+if [ -z "$(ls "$MNTPT/.test")" ]; then
+	echo -e "|"  "${IGreen}Storage is writable! ${Color_Off} |" >&2
+	rm "$MNTPT"/.test
+else
+	echo -e "|"  "${IRed}Storage is not writable, exiting. ${Color_Off} |" >&2
+	exit 1
+fi
+sleep 4
+
+##################################### Check free space
+clear ; echo "Checking free space available on storage." ; echo 
+if [ $USEP -ge 90 ]; then
+	echo -e "|"  "${IRed}Drive has less then 10% storage capacity available, please free up space. ${Color_Off} |" >&2
+	exit 1
+else
+	echo -e "|"  "${IGreen}Drive has more then 10% capacity available, proceeding! ${Color_Off} |" >&2
+fi
+sleep 4
+
 ##################################### Check for USB Mic
 clear ; echo "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!" ; echo 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
@@ -73,44 +104,6 @@ else
 fi
 sleep 4
 
-##################################### Check USB drives
-# Handeled by automount scripts, just here for reference.
-#jq -n --arg RD $ROOTDRIVE '{"RootDrive":"\($RD)"}'
-#jq -n --arg UUID $(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g') '{"RootDrivePartitionID":"\($UUID)"}'
-
-#for DRIVE in "$CHECKDRIVE"; do
-#DRIVEC=$(echo "$DRIVE" | sed 's|/dev/||g' )
-#ls -la /dev/disk/by-id/ | grep "$DRIVEC" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g' > /tmp/.drive
-#lshw -short -c disk | grep "$DRIVE" | tail -n+3 | awk '{print $2,$4}' | awk '{print $2}' > /tmp/.drivesize
-#jq -n --args USB $(cat /tmp/.drive) USBS $(cat /tmp/.drivesize) '{"StorageDevID-$USB":"\($USB1)"}'
-#sleep 1
-#done
-
-#If USB drive is true
-#Set write path to USB
-#else 
-#Set write path to SDcard
-
-
-##################################### Check if storage is writable and freespace is more than 10%
-# Write test
-touch $MOUNT_DIR/$DEVICE/.test
-if [ -z "$(ls "$MOUNT_DIR/$DEVICE/Recordings/.active")" ]; then
-	echo -e "|"  "${IGreen}Storage is writable! ${Color_Off} |" >&2
-	rm $MOUNT_DIR/$DEVICE/.test
-else
-	echo -e "|"  "${IRed}Storage is not writable, exiting. ${Color_Off} |" >&2
-	exit 1
-fi
-
-# Storage
-if [ $USEP -ge 90 ]; then
-	echo -e "|"  "${IRed}Drive has less then 10% storage capacity available, please free up space. ${Color_Off} |" >&2
-	exit 1
-else
-	echo -e "|"  "${IGreen}Drive has more then 10% capacity available, proceeding!   ${Color_Off} |" >&2
-fi
-
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
@@ -118,7 +111,7 @@ gpg 	--encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-
 	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
-tee /root/recording.wav.gpg
+tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 
 # Reverse Pipe
 #vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
@@ -128,14 +121,27 @@ tee /root/recording.wav.gpg
 #ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
 
 ###################################### Create and verify par2 files
-par2 create /mnt/$DRIVE/$(date +%Y-%m-%d_%H)-*.wav.gpg.par2 /mnt/$DRIVE/$(date +%Y-%m-%d_%H)-*.wav.gpg
-# if par2 verify /tmp/recording.opus.gpg.vdmfec.wav.asc.par2 /tmp/recording.opus.gpg.vdmfec.wav.asc
+# Implement a last modified file check for the latest recording only
+par2 create "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg.par2" "$MNTPT/$(date +%Y-%m-%d_%H)-*.wav.gpg"
+
+if [[ $(par2 verify testpar.par2 | grep "All files are correct, repair is not required") ]]; then
+	echo ; echo -e "|"  "${IGreen}Par2 verified! ${Color_Off} |"
+else
+	echo ; echo -e "|"  "${IRed}Par2 verification failed! ${Color_Off} |" >&2
+        #exit 1
+fi
 
 ##################################### Backup recordings
-#rsync -aAXHv "$USB"/ "$LOCALSTORAGE"/
+if [ -d "$LOCALSTORAGE" ]; then
+	rm -r "$LOCALSTORAGE"
+	chown -R "$USER":"$USER" "$LOCALSTORAGE"
+else
+	mkdir "$LOCALSTORAGE"
+	chown -R "$USER":"$USER" "$LOCALSTORAGE"
+fi
+
+rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
 
 ##################################### Finished
-
-
 
 exit 0
