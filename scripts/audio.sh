@@ -15,7 +15,8 @@ debug_mode
 ##################################### Check if script runs as root
 root_check
 
-##################################### Check USB drives		
+##################################### Check USB drives	
+# Implement a check for double drives.
 if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
         MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
         echo -e "|"  "${IGreen}Active drive has been found, proceeding!   ${Color_Off} |" >&2
@@ -23,6 +24,7 @@ else
         echo -e "|"  "${IRed}No active drive has been found, please reinsert or format USB. ${Color_Off} |" >&2
         exit 1
 fi
+sleep 4
 
 ##################################### Check if storage is writable
 clear ; echo "Checking if the storage is writable." ; echo 
