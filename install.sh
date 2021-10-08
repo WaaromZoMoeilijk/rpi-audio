@@ -57,7 +57,7 @@ wget http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.de
 ################################### Set timezone based upon WAN ip 
 clear ; echo "Set timezone based on WAN IP"
 if curl -sL 'ip-api.com/json' | grep -q "404"; then
-	echo -e "|"  "${IRed}Site is down, set timezone manually after installation with: sudo curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone ${Color_Off} |" >&2
+	curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
 else
 	curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
 fi
