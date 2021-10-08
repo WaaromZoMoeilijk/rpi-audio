@@ -112,15 +112,17 @@ else
 fi
 
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
-arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" | \
-opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST"--date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
-gpg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \ 
-    --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
-    --personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 > /mnt/$DRIVE/$(date +%Y-%m-%d_%H-%M-%S).wav.gpg.par2  #| \
+arecord -q -f S16_LE -d 10 -r 48000 --device="hw:$CARD,0" | \
+opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
+gpg 	--encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
+	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
+vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
+tee /root/recording.wav.gpg
 
-# Not working with vdmfec
-#vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
-#tee /mnt/$DRIVE/$(date +%Y-%m-%d_%H-%M-%S).opus.gpg.vdmfec.wav.asc 
+# Reverse Pipe
+#vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
+#gpg --decrypt > /root/recording.wav 
 
 ###################################### Create and verify par2 files
 par2 create /mnt/$DRIVE/$(date +%Y-%m-%d_%H)-*.wav.gpg.par2 /mnt/$DRIVE/$(date +%Y-%m-%d_%H)-*.wav.gpg
