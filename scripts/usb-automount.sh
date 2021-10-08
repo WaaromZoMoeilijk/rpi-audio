@@ -92,7 +92,6 @@ automount() {
         ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo "Successfully mounted EXT"
               ;;
     esac
-
 	sleep 3
 	is_mounted "$DEVICE" || fatal "Failed to Mount $MOUNT_DIR/$DEVICE"
 	echo ; echo "SUCCESS: /dev/$DEVICE mounted as $MOUNT_DIR/$DEVICE" ; echo
@@ -106,13 +105,12 @@ autostart() {
         if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
 	        echo "More then 1 parition detected, please format your drive and create a single FAT32 partition and try again"
 		exit 1
-
         elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
                 echo "1 partition detected, checking if its been used before"
 	        # Check if drive is empty
 	        if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE")" ] ; then
         	        # Empty
-                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
+                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
 			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE"
 	        else
         	        # Not Empty
