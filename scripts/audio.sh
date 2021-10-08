@@ -120,11 +120,12 @@ tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 # SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
 #ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
 
-###################################### Create and verify par2 files
+###################################### Create par2 files
 # Implement a last modified file check for the latest recording only
 par2 create "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg.par2" "$MNTPT/$(date +%Y-%m-%d_%H)-*.wav.gpg"
 
-if [[ $(par2 verify testpar.par2 | grep "All files are correct, repair is not required") ]]; then
+###################################### Verify par2 files
+if [[ $(par2 verify "$MNTPT/$(date +%Y-%m-%d_%H)*.wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
 	echo ; echo -e "|"  "${IGreen}Par2 verified! ${Color_Off} |"
 else
 	echo ; echo -e "|"  "${IRed}Par2 verification failed! ${Color_Off} |" >&2
@@ -133,7 +134,6 @@ fi
 
 ##################################### Backup recordings
 if [ -d "$LOCALSTORAGE" ]; then
-	rm -r "$LOCALSTORAGE"
 	chown -R "$USER":"$USER" "$LOCALSTORAGE"
 else
 	mkdir "$LOCALSTORAGE"
