@@ -54,15 +54,6 @@ apt install -y \
 ################################### VDMFEC
 wget http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb && dpkg -i vdmfec_1.0-2+b2_arm64.deb && rm vdmfec_1.0-2+b2_arm64.deb
 
-################################### Check ZFS 
-# only works after a reboot
-#modprobe zfs
-#if zpool status | grep -q "no pools available"; then
-#	echo -e "|"  "${IGreen}ZFS installed and works! ${Color_Off} |"
-#else
-#	echo -e "|"  "${IRed}ZFS installation failed! ${Color_Off} |" >&2
-#fi
-
 ################################### Set timezone based upon WAN ip 
 clear ; echo "Set timezone based on WAN IP"
 if curl -sL 'ip-api.com/json' | grep -q "404"; then
@@ -71,14 +62,14 @@ else
 	curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
 fi
 
-# unattended-upgrades
+################################### unattended-upgrades
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure unattended-upgrades
 
 ################################### Allow root access, temp during dev
 mkdir -p /root/.ssh
 echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys
 
-# Create user
+################################### Create user
 #/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
 
 ################################### Clone git repo
@@ -99,9 +90,6 @@ git clone "$REPO" "$GITDIR"
 #    /bin/bash "$GITDIR"/scripts/overclock.sh
 #fi
 
-################################### Audio recording
-#/bin/bash "$GITDIR"/scripts/audio.sh
-
 ################################### Storage
 # Add auto mount & checks for usb drives
 cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
@@ -119,6 +107,10 @@ udevadm control --reload-rules
 
 ################################### LED / Buttons
 #/bin/bash "$GITDIR"/scripts/ph.sh
+
+################################### Audio recording
+#/bin/bash "$GITDIR"/scripts/audio.sh
+# Setup mechanism to start on boot or only on USB insert
 
 clear
 
