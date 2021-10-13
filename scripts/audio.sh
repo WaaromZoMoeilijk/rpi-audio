@@ -15,6 +15,9 @@ debug_mode
 ##################################### Check if script runs as root
 root_check
 
+##################################### Stop all recordings just to be sure
+ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
+
 ##################################### Check USB drives	
 # Implement a check for double drives.
 if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
@@ -105,11 +108,15 @@ else
         #exit 1
 fi
 sleep 4
-
+##################################### Check for double channel
+# channel=$()
+# if channel = 2 then
+#else
+#fi
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
-gpg 	--encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+gpgv1 	--encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
@@ -117,7 +124,7 @@ tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 
 # Reverse Pipe
 #vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
-#gpg --decrypt > /root/recording.wav 
+#gpgv1 --decrypt > /root/recording.wav 
 
 # SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
 #ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
