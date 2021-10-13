@@ -52,7 +52,9 @@ apt install -y \
 	unattended-upgrades \
 	net-tools \
 	alsa-utils \
-	opus-tools 
+	opus-tools \
+	ufw \
+	rsyslog
 #	gpgv1 
 #  	zerotier
 #	autossh \
@@ -106,17 +108,17 @@ else
 fi
 
 ################################### Create user
-#echo ; echo -e "|" "${IBlue}Creating user${Color_Off} |" >&2 ; echo
-#if cat /etc/passwd | grep "$USERNAME"; then
-#	echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
-#else
-	#/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
-	#if [ $? -eq 0 ]; then
-	#	echo -e "|" "${IGreen}User added!${Color_Off} |" >&2
-	#else
-	#	echo -e "|" "${IRed}User add failed!${Color_Off} |" >&2
-	#fi
-#fi
+echo ; echo -e "|" "${IBlue}Creating user${Color_Off} |" >&2 ; echo
+if cat /etc/passwd | grep "$USERNAME"; then
+	echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
+else
+	/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
+	if [ $? -eq 0 ]; then
+		echo -e "|" "${IGreen}User added!${Color_Off} |" >&2
+	else
+		echo -e "|" "${IRed}User add failed!${Color_Off} |" >&2
+	fi
+fi
 
 ################################### Clone git repo
 echo ; echo -e "|" "${IBlue}Clone git repo${Color_Off} |" >&2 ; echo
@@ -125,9 +127,9 @@ if [ -d "$GITDIR" ]; then
 	#cd "$GITDIR"
 	#git pull
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Git repository updated!${Color_Off} |" >&2
+		echo -e "|" "${IGreen}Git repository removed!${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}Git repository failed to update!${Color_Off} |" >&2
+		echo -e "|" "${IRed}Git repository failed to remove!${Color_Off} |" >&2
 	fi
 else
 	git clone "$REPO" "$GITDIR"
@@ -139,14 +141,23 @@ else
 fi
 
 ################################### Hardening
-#echo ; echo -e "|" "${IBlue}Hardening${Color_Off} |" >&2 ; echo
-#/bin/bash "$GITDIR"/scripts/hardening.sh
-
+echo ; echo -e "|" "${IBlue}Hardening${Color_Off} |" >&2 ; echo
+/bin/bash "$GITDIR"/scripts/hardening.sh
+if [ $? -eq 0 ]; then
+	echo -e "|" "${IGreen}Hardening executed!${Color_Off} |" >&2
+else
+	echo -e "|" "${IRed}Hardening failed!${Color_Off} |" >&2
+fi	
 ################################### Dynamic overclock
-#echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
-#if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
-#    /bin/bash "$GITDIR"/scripts/overclock.sh
-#fi
+echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
+if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
+	/bin/bash "$GITDIR"/scripts/overclock.sh
+	if [ $? -eq 0 ]; then
+		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable!${Color_Off} |" >&2
+	else
+		echo -e "|" "${IRed}Overclock set failed!${Color_Off} |" >&2
+	fi	    
+fi
 
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
