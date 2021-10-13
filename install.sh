@@ -3,11 +3,8 @@
 # info@waaromzomoeilijk.nl
 # login root/dietpi
 
-#echo -e "|"  "${IGreen} ${Color_Off} |"
-#echo -e "|"  "${IRed} ${Color_Off} |" >&2
-
 # Version
-# v0.1
+# v0.0.9
 
 ################################### Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
@@ -54,7 +51,8 @@ apt install -y \
 	alsa-utils \
 	opus-tools \
 	ufw \
-	rsyslog
+	rsyslog \
+	fail2ban
 #	gpgv1 
 #  	zerotier
 #	autossh \
@@ -87,7 +85,7 @@ else
 	fi
 fi
 
-################################### Allow root access, temp during dev
+################################### Allow access, temp during dev
 echo ; echo -e "|" "${IBlue}Dev access${Color_Off} |" >&2 ; echo
 if [ -d "/root/.ssh" ]; then
 	echo -e "|" "${IGreen}Folder .ssh exists!${Color_Off} |" >&2
@@ -149,15 +147,15 @@ else
 	echo -e "|" "${IRed}Hardening failed!${Color_Off} |" >&2
 fi	
 ################################### Dynamic overclock
-echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
-if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
-	/bin/bash "$GITDIR"/scripts/overclock.sh
-	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable!${Color_Off} |" >&2
-	else
-		echo -e "|" "${IRed}Overclock set failed!${Color_Off} |" >&2
-	fi	    
-fi
+#echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
+#if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
+#	/bin/bash "$GITDIR"/scripts/overclock.sh
+#	if [ $? -eq 0 ]; then
+#		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable!${Color_Off} |" >&2
+#	else
+#		echo -e "|" "${IRed}Overclock set failed!${Color_Off} |" >&2
+#	fi	    
+#fi
 
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
