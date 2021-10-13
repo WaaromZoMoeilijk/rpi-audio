@@ -3,6 +3,7 @@
 CONFIG="/boot/config.txt"
 GITDIR="/opt/rpi-audio"
 HOME="/home/admin"
+LOCALSTORAGE="/Recordings"
 ################################### System
 USER="dietpi"
 USERNAME="admin"
@@ -13,6 +14,7 @@ CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{
 DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
 BLOCKSIZE=$(blockdev --getbsz "$DEV")
 USEP=$(df -h | grep "$DEV" | awk '{ print $5 }' | cut -d'%' -f1)
+LOCALSTORAGEUSEDM=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | awk '{print $4}' | sed 's|M||g')
 ################################### Opusenc
 TITLE=$(cat /etc/hostname)
 ARTIST="RaspberryPI"
