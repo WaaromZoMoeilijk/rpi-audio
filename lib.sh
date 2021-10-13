@@ -31,6 +31,7 @@ REPO="https://github.com/WaaromZoMoeilijk/rpi-audio"
 ################################### Misc
 REBOOT="sleep 40 && reboot"
 DATE=$(date '+%Y-%m-%d - %H:%M:%S')
+NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 ################################### Storage
 SCRIPT_DIR="$GITDIR/scripts"
 LOG_DIR="/var/log"
