@@ -22,6 +22,7 @@ debug_mode
 root_check
 
 ################################### Prefer IPv4 for apt
+echo ; echo -e "|" "${IBlue}IPv4 APT${Color_Off} |" >&2 ; echo
 if [ -f /etc/apt/apt.conf.d/99force-ipv4 ]; then
 	echo "IPv4 Preference already set"
 else
@@ -29,6 +30,7 @@ else
 fi 
 
 #################################### Update
+echo ; echo -e "|" "${IBlue}Update${Color_Off} |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 clear ; echo "Auto clean"
@@ -41,7 +43,7 @@ clear ; echo "Upgrade"
 apt_upgrade & spinner
 
 ################################### Dependencies
-clear ; echo "Install Dependencies"
+echo ; echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2 ; echo
 apt install -y \
 	git \
   	jq \
@@ -57,6 +59,7 @@ apt install -y \
 #	raspberrypi-kernel-headers \	
 	
 ################################### VDMFEC
+echo ; echo -e "|" "${IBlue}VMDFEC${Color_Off} |" >&2 ; echo
 if apt list vdmfec | grep -q installed; then
 	echo "vdmfec already installed"
 else
@@ -65,7 +68,7 @@ else
 fi
 
 ################################### Set timezone based upon WAN ip 
-clear ; echo "Set timezone based on WAN IP"
+echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP${Color_Off} |" >&2 ; echo
 if curl -sL 'ip-api.com/json' | grep -q "404"; then
 	curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
 	if [ $? -eq 0 ]; then
@@ -83,6 +86,7 @@ else
 fi
 
 ################################### Allow root access, temp during dev
+echo ; echo -e "|" "${IBlue}Dev access${Color_Off} |" >&2 ; echo
 if [ -d "/root/.ssh" ]; then
 	echo -e "|" "${IGreen}Folder .ssh exists!${Color_Off} |" >&2
 else
@@ -102,7 +106,7 @@ else
 fi
 
 ################################### Create user
-#clear ; echo "Creating user"
+#echo ; echo -e "|" "${IBlue}Creating user${Color_Off} |" >&2 ; echo
 #if cat /etc/passwd | grep "$USERNAME"; then
 #	echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
 #else
@@ -115,7 +119,7 @@ fi
 #fi
 
 ################################### Clone git repo
-clear ; echo "Clone git repo"
+echo ; echo -e "|" "${IBlue}Clone git repo${Color_Off} |" >&2 ; echo
 if [ -d "$GITDIR" ]; then
 	rm -r "$GITDIR" # Only during dev
 	#cd "$GITDIR"
@@ -135,17 +139,17 @@ else
 fi
 
 ################################### Hardening
-#clear ; echo "Hardening"
+#echo ; echo -e "|" "${IBlue}Hardening${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/hardening.sh
 
 ################################### Dynamic overclock
-#clear ; echo "Overclock"
+#echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
 #if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 #    /bin/bash "$GITDIR"/scripts/overclock.sh
 #fi
 
-################################### Storage
-# Add auto mount & checks for usb drives
+################################### Storage, add auto mount & checks for usb drives
+echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
 	echo -e "|"  "${IGreen}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
 else
@@ -160,15 +164,19 @@ EOF
 fi
 
 ################################### UPS
+#echo ; echo -e "|" "${IBlue}UPS${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/ups.sh
 
 ################################### ZeroTier
+#echo ; echo -e "|" "${IBlue}Zerotier/networking${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/zerotier.sh
 
 ################################### LED / Buttons
+#echo ; echo -e "|" "${IBlue}LED/buttons${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 ################################### Audio recording
+#echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/audio.sh
 # Setup mechanism to start on boot or only on USB insert
 
