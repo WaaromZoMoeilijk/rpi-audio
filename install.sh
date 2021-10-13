@@ -147,15 +147,17 @@ else
 	echo -e "|" "${IRed}Hardening failed!${Color_Off} |" >&2
 fi	
 ################################### Dynamic overclock
-#echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
-#if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
-#	/bin/bash "$GITDIR"/scripts/overclock.sh
-#	if [ $? -eq 0 ]; then
-#		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable!${Color_Off} |" >&2
-#	else
-#		echo -e "|" "${IRed}Overclock set failed!${Color_Off} |" >&2
-#	fi	    
-#fi
+# Please at minimum add some heat sinks to the RPI. Better to also add a FAN. thermal throtteling is in place at 75 celcius 
+# Overclocking dynamically will only affect the temp on high load for longer periods. You can mitigate that with above.
+echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
+if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
+	/bin/bash "$GITDIR"/scripts/overclock.sh
+	if [ $? -eq 0 ]; then
+		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable!${Color_Off} |" >&2
+	else
+		echo -e "|" "${IRed}Overclock set failed!${Color_Off} |" >&2
+	fi	    
+fi
 
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
