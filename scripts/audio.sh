@@ -20,6 +20,7 @@ ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
 
 ##################################### Check USB drives	
 # Implement a check for double drives.
+echo ; echo -e "|" "${IBlue}Checking for USB drives.${Color_Off} |" >&2 ; echo 
 if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
         MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
         echo -e "|"  "${IGreen}Active drive has been found, proceeding!   ${Color_Off} |" >&2
@@ -27,10 +28,9 @@ else
         echo -e "|"  "${IRed}No active drive has been found, please reinsert or format USB. ${Color_Off} |" >&2
         exit 1
 fi
-sleep 4
 
 ##################################### Check if storage is writable
-clear ; echo "Checking if the storage is writable." ; echo 
+echo ; echo -e "|" "${IBlue}Checking if the storage is writable.${Color_Off} |" >&2 ; echo 
 touch "$MNTPT"/.test
 if [ -z "$(ls "$MNTPT/.test")" ]; then
 	echo -e "|"  "${IGreen}Storage is writable! ${Color_Off} |" >&2
@@ -39,33 +39,37 @@ else
 	echo -e "|"  "${IRed}Storage is not writable, exiting. ${Color_Off} |" >&2
 	exit 1
 fi
-sleep 4
 
 ##################################### Check free space
-clear ; echo "Checking free space available on storage." ; echo 
+echo ; echo -e "|" "${IBlue}Checking free space available on storage.${Color_Off} |" >&2 ; echo 
 if [ $USEP -ge 90 ]; then
 	echo -e "|"  "${IRed}Drive has less then 10% storage capacity available, please free up space. ${Color_Off} |" >&2
-	exit 1
 else
 	echo -e "|"  "${IGreen}Drive has more then 10% capacity available, proceeding! ${Color_Off} |" >&2
 fi
-sleep 4
+
+USEDM=$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')
+if [ "$USEM " -le 500 ]; then
+	echo ; echo -e "|"  "${IRed}Less then 500MB available on usb storage directory: $USEM MB (USB)${Color_Off} |" >&2
+	exit 1
+else
+	echo ; echo -e "|"  "${IGreen}More then then 500MB available on usb storage directory: $USEMMB (USB)${Color_Off} |" >&2
+fi	
 
 ##################################### Check for USB Mic
-clear ; echo "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!" ; echo 
+echo ; echo -e "|" "${IBlue}Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!${Color_Off} |" >&2 ; echo 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
 if [ $? -eq 0 ]; then
-	echo ; echo -e "|"  "${IGreen}USB Microphone detected! ${Color_Off} |"
+	    echo ; echo -e "|"  "${IGreen}USB Microphone detected! ${Color_Off} |"
 else
         echo -e "|"  "${IRed}No USB Microphone detected! Please plug one in now, and restart! ${Color_Off} |" >&2
         #LED/beep that mic is not detected
-	# sleep 10 && reboot
+	    # sleep 10 && reboot
         exit 1
 fi
-sleep 4
 
 ##################################### Set volume and unmute
-echo ; echo "Set volume and unmute" ; echo 
+echo ; echo -e "|" "${IBlue}Set volume and unmute${Color_Off} |" >&2 ; echo 
 amixer -q -c $CARD set Mic 80% unmute
 if [ $? -eq 0 ]; then
 	echo -e "|"  "${IGreen}Mic input volume set to 80% and is unmuted${Color_Off} |"
@@ -73,10 +77,9 @@ else
         echo -e "|"  "${IRed}Failed to set input volume${Color_Off} |" >&2
         #exit 1
 fi
-sleep 4
 
 ##################################### Test recording
-echo ; echo "Test recording" ; echo
+echo ; echo -e "|" "${IBlue}Test recording${Color_Off} |" >&2 ; echo
 arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
 if [ $? -eq 0 ]; then
         echo -e "|"  "${IGreen}Test recording is done! ${Color_Off} |"
@@ -84,20 +87,18 @@ else
         echo -e "|"  "${IRed}Test recording failed! ${Color_Off} |" >&2
         #exit 1
 fi
-sleep 4
 
 ##################################### Check recording file size
-echo ; echo "Check if recording file size is not 0" ; echo 
+echo ; echo -e "|" "${IBlue}Check if recording file size is not 0${Color_Off} |" >&2 ; echo 
 if [ -s /tmp/test-mic.wav ]; then
         echo -e "|"  "${IGreen}File contains data! ${Color_Off} |"
 else
         echo -e "|"  "${IRed}File is empty! Unable to record. ${Color_Off} |" >&2
 	#exit 1
 fi
-sleep 4
 
 ##################################### Test playback
-echo ; echo "Testing playback of the recording" ; echo
+echo ; echo -e "|" "${IBlue}Testing playback of the recording${Color_Off} |" >&2 ; echo
 aplay /tmp/test-mic.wav
 if [ $? -eq 0 ]; then
 	echo ; echo -e "|"  "${IGreen}Playback is ok! ${Color_Off} |"
@@ -107,12 +108,13 @@ else
 	rm -r /tmp/test-mic.wav
         #exit 1
 fi
-sleep 4
+
 ##################################### Check for double channel
 # channel=$()
 # if channel = 2 then
 #else
 #fi
+
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
@@ -149,7 +151,12 @@ else
 	chown -R "$USER":"$USER" "$LOCALSTORAGE"
 fi
 
-rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
+if [ "$LOCALSTORAGEUSED" -le 500 ]; then
+	echo ; echo -e "|"  "${IRed}Less then 500MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off} |" >&2
+else
+	echo ; echo -e "|"  "${IGreen}More then then 500MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off} |" >&2
+	rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
+fi	
 
 ##################################### Finished
 
