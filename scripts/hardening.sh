@@ -8,8 +8,6 @@ echo "yes" | ufw reset
 ufw default allow outgoing
 ufw default deny incoming
 ufw limit 22/tcp
-ufw allow http
-ufw allow https
 ufw enable
 
 # Fail2ban
