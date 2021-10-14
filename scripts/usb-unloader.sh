@@ -53,11 +53,11 @@ autounload() {
     fi
 
     # test that this device has disappeared from mounted devices
-    device_mounted=$(grep "$DEVICE" /etc/mtab)
+    device_mounted=$(grep "$DEV" /etc/mtab)
     if [ "$device_mounted" ]; then
          echo ; echo -e "|" "${IRed}/dev/$DEVICE failed to Un-Mount, forcing umount -l${Color_Off} |" >&2
-	    umount -l "/dev/$DEVICE"
-        #exit 1
+	 	umount -l "/dev/$DEVICE"
+    		#exit 1
     else
          echo ; echo -e "|" "${IGreen}/dev/$DEVICE successfully Un-Mounted${Color_Off} |" >&2
     fi
