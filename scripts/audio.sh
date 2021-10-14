@@ -16,7 +16,13 @@ debug_mode
 root_check
 
 ##################################### Stop all recordings just to be sure
-ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
+if [ -f /tmp/.recording.lock ]; then
+	ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
+	rm /tmp/.recording.lock
+fi
+
+##################################### In progress flag
+echo "$DATE" > /tmp/.recording.lock
 
 ##################################### Check USB drives	
 # Implement a check for double drives.
@@ -157,6 +163,9 @@ else
 	echo ; echo -e "|"  "${IGreen}More then then 500MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off} |" >&2
 	rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
 fi	
+
+##################################### In progress flag
+rm /tmp/.recording.lock
 
 ##################################### Finished
 
