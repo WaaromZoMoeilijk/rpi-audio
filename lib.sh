@@ -81,23 +81,23 @@ fatal() {
 }
 ###################################
 apt_install() {
-    apt install -y -qq -d
+    apt install -y -qq -o=Dpkg::Use-Pty=0
 }
 ###################################
 apt_update() {
-    apt update -qq -d
+    apt update -qq -o=Dpkg::Use-Pty=0
 }
 ###################################
 apt_upgrade() {
-    sudo -E apt -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -d
+    sudo -E apt -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -o "Dpkg::Use-Pty=0"
 }
 ###################################
 apt_autoremove() {
-    apt autopurge -y -qq -d
+    apt autopurge -y -qq -o=Dpkg::Use-Pty=0
 }
 ###################################
 apt_autoclean() {
-    apt -y autoclean -qq -d
+    apt -y autoclean -qq -o=Dpkg::Use-Pty=0
 }
 ################################### Spinner during long commands
 spinner() {
