@@ -51,19 +51,26 @@ MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 #   - auto end program on REMOVE
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 
-###################################
-mkdir -p "$LOG_DIR"
-touch "$LOG_FILE"
-chown -R "$USER":"$USER" "$LOG_DIR"
+################################### Create log dir if needed
+if [ -d "$LOG_DIR" ]; then
+    echo -e "|"  "${IYellow}Directory $LOG_DIR exists${Color_Off} |" >&2
+else
+    mkdir -p "$LOG_DIR"
+    touch "$LOG_FILE"
+    chown -R "$USER":"$USER" "$LOG_FILE"
+    echo -e "|"  "${IGreen}Directory $LOG_DIR created${Color_Off} |" >&2    
+fi
 
-###################################  Call speciality script and leave this one (with trailing "&")
+###################################  Call load or unload script
 if [ "$1" == "ADD" ]; then
     DEVICE="$2"    # USB device name (kernel passed from udev rule)
     DEVTYPE="$3"   # USB device formatting type
-    echo "==> Adding USB Device $DEVICE" >> "$LOG_FILE"
+    echo -e "|"  "${IBlue}==> Adding USB Device $DEVICE$ <=={Color_Off} |" >> "$LOG_FILE" >&2
     "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
-    echo "==> Unmounting USB Device $DEVICE" >> "$LOG_FILE"
-    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
+    echo -e "|"  "${IBlue}==> Unmounting USB Device $DEVICE$ <=={Color_Off} |" >> "$LOG_FILE" >&2
+    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
 fi
+
+exit 0
