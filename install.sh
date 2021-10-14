@@ -211,7 +211,7 @@ if [ -d "$GITDIR" ]; then
 	fi
 
 	git clone "$REPO" "$GITDIR"
-	chown +x "$GITDIR"/scripts/*.sh
+	chmod +x "$GITDIR"/scripts/*.sh
 	if [ $? -eq 0 ]; then
 		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
 	else
@@ -219,7 +219,7 @@ if [ -d "$GITDIR" ]; then
 	fi
 else
 	git clone "$REPO" "$GITDIR"
-	chown +x "$GITDIR"/scripts/*.sh
+	chmod +x "$GITDIR"/scripts/*.sh
 	if [ $? -eq 0 ]; then
 		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
 	else
