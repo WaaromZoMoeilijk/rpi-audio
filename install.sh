@@ -119,22 +119,25 @@ fi
 
 ################################### Set timezone based upon WAN ip 
 echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP${Color_Off} |" >&2 ; echo
-if curl -sL 'ip-api.com/json' | grep -q "404"; then
-	curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
-	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Timezone set!${Color_Off} |" >&2
-	else
-		echo -e "|" "${IRed}Timezone set failed!${Color_Off} |" >&2
-	fi	
+if timedatectl set-timezone Europe/Amsterdam | grep -q "Failed to connect to bus: No such file or directory"; then
+	echo -e "|" "${IYellow}First install fails because of dbus dependency. Next run will set the timezone automatically${Color_Off} |" >&2
 else
-	curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
-	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Timezone set!${Color_Off} |" >&2
+	if curl -sL 'ip-api.com/json' | grep -q "404"; then
+		curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
+		if [ $? -eq 0 ]; then
+			echo -e "|" "${IGreen}Timezone set!${Color_Off} |" >&2
+		else
+			echo -e "|" "${IRed}Timezone set failed!${Color_Off} |" >&2
+		fi	
 	else
-		echo -e "|" "${IRed}Timezone set failed!${Color_Off} |" >&2
+		curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
+		if [ $? -eq 0 ]; then
+			echo -e "|" "${IGreen}Timezone set!${Color_Off} |" >&2
+		else
+			echo -e "|" "${IRed}Timezone set failed!${Color_Off} |" >&2
+		fi
 	fi
 fi
-
 ################################### Allow access, temp during dev
 echo ; echo -e "|" "${IBlue}Dev access${Color_Off} |" >&2 ; echo
 if [ -d "/root/.ssh" ]; then
