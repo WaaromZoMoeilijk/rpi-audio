@@ -38,6 +38,7 @@ NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 SCRIPT_DIR="$GITDIR/scripts"
 LOG_DIR="/var/log"
 LOG_FILE="$LOG_DIR/usb-automount.log"
+LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
 MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 # Optional parameter to:
 #   - auto start a program on ADD
