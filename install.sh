@@ -89,13 +89,13 @@ fi
 echo ; echo -e "|     " "${IBlue}Update: OS ${Color_Off}      |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
-echo -e "|"  "${IBlue}Auto clean${Color_Off} |" >&2
+echo -e "|" "${IBlue}Auto clean${Color_Off} |" >&2
 apt_autoclean & spinner
-echo ; echo -e "|"  "${IBlue}Auto purge${Color_Off} |" >&2
+echo ; echo -e "|" "${IBlue}Auto purge${Color_Off} |" >&2
 apt_autoremove & spinner
-echo ; echo -e "|"  "${IBlue}Update${Color_Off} |" >&2
+echo ; echo -e "|" "${IBlue}Update${Color_Off} |" >&2
 apt_update & spinner
-echo ; echo -e "|"  "${IBlue}Upgrade${Color_Off} |" >&2
+echo ; echo -e "|" "${IBlue}Upgrade${Color_Off} |" >&2
 apt_upgrade & spinner
 
 ################################### Dependencies
@@ -151,16 +151,16 @@ else
 	if curl -sL 'ip-api.com/json' | grep -q "404"; then
 		curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
 		if [ $? -eq 0 ]; then
-			echo -e "|" "${IGreen}Timezone set!${Color_Off} |" >&2
+			echo -e "|" "${IGreen}Timezone set${Color_Off} |" >&2
 		else
-			echo -e "|" "${IRed}Timezone set failed!${Color_Off} |" >&2
+			echo -e "|" "${IRed}Timezone set failed${Color_Off} |" >&2
 		fi
 	else
 		curl -sL 'ip-api.com/json' | jq '.timezone' | xargs timedatectl set-timezone
 		if [ $? -eq 0 ]; then
-			echo -e "|" "${IGreen}Timezone set!${Color_Off} |" >&2
+			echo -e "|" "${IGreen}Timezone set${Color_Off} |" >&2
 		else
-			echo -e "|" "${IRed}Timezone set failed!${Color_Off} |" >&2
+			echo -e "|" "${IRed}Timezone set failed${Color_Off} |" >&2
 		fi
 	fi
 fi
@@ -168,33 +168,33 @@ fi
 ################################### Allow access, temp during dev
 echo ; echo -e "|" "${IBlue}Dev access${Color_Off} |" >&2 ; echo
 if [ -d "/root/.ssh" ]; then
-	echo -e "|" "${IGreen}Folder .ssh exists!${Color_Off} |" >&2
+	echo -e "|" "${IGreen}Folder .ssh exists${Color_Off} |" >&2
 else
 	mkdir -p /root/.ssh
-	echo -e "|" "${IGreen}Folder /root/.ssh created!${Color_Off} |" >&2
+	echo -e "|" "${IGreen}Folder /root/.ssh created${Color_Off} |" >&2
 fi
 
 if cat /root/.ssh/authorized_keys | grep -q "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz"; then
-	echo -e "|" "${IGreen}Public key exists already!${Color_Off} |" >&2
+	echo -e "|" "${IGreen}Public key exists already${Color_Off} |" >&2
 else
 	echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Pubkey added!${Color_Off} |" >&2
+		echo -e "|" "${IGreen}Pubkey added${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}Pubkey appending failed!${Color_Off} |" >&2
+		echo -e "|" "${IRed}Pubkey appending failed${Color_Off} |" >&2
 	fi
 fi
 
 ################################### Create user
 echo ; echo -e "|" "${IBlue}Creating user${Color_Off} |" >&2 ; echo
 if cat /etc/passwd | grep "$USERNAME"; then
-	echo ; echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
+	echo ; echo -e "|" "${IGreen}User exists${Color_Off} |" >&2
 else
 	/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}User added!${Color_Off} |" >&2
+		echo -e "|" "${IGreen}User added${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}User add failed!${Color_Off} |" >&2
+		echo -e "|" "${IRed}User add failed${Color_Off} |" >&2
 	fi
 fi
 
@@ -205,25 +205,25 @@ if [ -d "$GITDIR" ]; then
 	#git pull
 	rm -r "$GITDIR"
 	if [ $? -eq 0 ]; then
-		echo ; echo -e "|" "${IGreen}Git repository removed!${Color_Off} |" >&2 ; echo 
+		echo ; echo -e "|" "${IGreen}Git repository removed${Color_Off} |" >&2 ; echo 
 	else
-		echo ; echo -e "|" "${IRed}Git repository failed to remove!${Color_Off} |" >&2 ; echo
+		echo ; echo -e "|" "${IRed}Git repository failed to remove${Color_Off} |" >&2 ; echo
 	fi
 
 	git clone "$REPO" "$GITDIR"
 	chmod +x "$GITDIR"/scripts/*.sh
 	if [ $? -eq 0 ]; then
-		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Git repository cloned${Color_Off} |" >&2
 	else
-		echo ; echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}Git repository failed to clone${Color_Off} |" >&2
 	fi
 else
 	git clone "$REPO" "$GITDIR"
 	chmod +x "$GITDIR"/scripts/*.sh
 	if [ $? -eq 0 ]; then
-		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Git repository cloned${Color_Off} |" >&2
 	else
-		echo ; echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}Git repository failed to clone${Color_Off} |" >&2
 	fi
 fi
 
@@ -231,9 +231,9 @@ fi
 echo ; echo -e "|" "${IBlue}Hardening${Color_Off} |" >&2 ; echo
 /bin/bash "$GITDIR"/scripts/hardening.sh
 if [ $? -eq 0 ]; then
-	echo ; echo -e "|" "${IGreen}Hardening executed!${Color_Off} |" >&2
+	echo ; echo -e "|" "${IGreen}Hardening executed${Color_Off} |" >&2
 else
-	echo ; echo -e "|" "${IRed}Hardening failed!${Color_Off} |" >&2
+	echo ; echo -e "|" "${IRed}Hardening failed${Color_Off} |" >&2
 fi
 
 ################################### Dynamic overclock
@@ -243,16 +243,16 @@ echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
 if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 	/bin/bash "$GITDIR"/scripts/overclock.sh
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable!${Color_Off} |" >&2
+		echo -e "|" "${IGreen}Overclock set, active on next reboot. Press shift during boot to disable${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}Overclock set failed!${Color_Off} |" >&2
+		echo -e "|" "${IRed}Overclock set failed${Color_Off} |" >&2
 	fi
 fi
 
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
-	echo -e "|"  "${IYellow}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
+	echo -e "|" "${IYellow}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
 else
 
 cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
@@ -260,7 +260,7 @@ ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
 
-	udevadm control --reload-rules && echo -e "|" "${IGreen}Storage automation has been setup!${Color_Off} |" >&2 || echo -e "|" "${IGreen}Storage automation setup has failed!${Color_Off} |" >&2
+	udevadm control --reload-rules && echo -e "|" "${IGreen}Storage automation has been setup${Color_Off} |" >&2 || echo -e "|" "${IGreen}Storage automation setup has failed${Color_Off} |" >&2
 fi
 
 ################################### UPS
