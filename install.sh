@@ -33,6 +33,7 @@ fi
 
 ################################### Upstart
 echo ; echo -e "|" "${IBlue}Setting up rc.local - $DATE${Color_Off} |" >&2 ; echo
+
 if [ -f "/etc/rc.local" ]; then
       mv /etc/rc.local /etc/rc.local.backup
 fi
@@ -40,9 +41,9 @@ fi
 if [ -f /etc/rc.local ]; then
 	mv /etc/rc.local /etc/rc.local.backup
 else
-	if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
-		echo -e "|" "${IYellow}Setting up rc.local - Already exists${Color_Off} |" >&2
-	else
+	systemctl disable rc-local.service || true
+	rm /etc/systemd/system/rc-local.service
+	systemctl daemon-reload
 cat > /etc/systemd/system/rc-local.service <<EOF
 [Unit]
 Description=/etc/rc.local
@@ -65,38 +66,40 @@ cat > /etc/rc.local <<EOF
 exit 0
 EOF
 
-	if [ -f /etc/rc.local ]; then
-		# Check if the above is succesfull
-		if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
-			echo -e "|" "${IGreen}Setting up rc.local - Created${Color_Off} |" >&2
-		else
-			echo -e "|" "${IRed}Setting up rc.local - Failed, file exists but not the proper content${Color_Off} |" >&2
-		fi
-	else
-		echo -e "|" "${IRed}Setting up rc.local - Failed${Color_Off} |" >&2
-	fi
-
+	chmod +x /etc/rc.local
 	systemctl daemon-reload
 	systemctl enable rc-local.service
 	systemctl start rc-local.service
+	
+	if [ -f /etc/rc.local ]; then
+		# Check if the above is succesfull
+		if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
+			echo ; echo -e "|" "${IGreen}Setting up rc.local - Created${Color_Off} |" >&2
+		else
+			echo ; echo -e "|" "${IRed}Setting up rc.local - Failed, file exists but not the proper content${Color_Off} |" >&2
+		fi
+	else
+		echo ; echo -e "|" "${IRed}Setting up rc.local - Failed${Color_Off} |" >&2
 	fi
+	
+
 fi
 
 #################################### Update
-echo -e "|" "${IBlue} ==> Update: OS <==  - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue} ==> Update: OS <==  - $DATE${Color_Off} |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 echo -e "|"  "${IBlue}Auto clean${Color_Off} |" >&2
 apt_autoclean & spinner
-echo -e "|"  "${IBlue}Auto purge${Color_Off} |" >&2
+echo ; echo -e "|"  "${IBlue}Auto purge${Color_Off} |" >&2
 apt_autoremove & spinner
-echo -e "|"  "${IBlue}Update${Color_Off} |" >&2
+echo ; echo -e "|"  "${IBlue}Update${Color_Off} |" >&2
 apt_update & spinner
-echo -e "|"  "${IBlue}Upgrade${Color_Off} |" >&2
+echo ; echo -e "|"  "${IBlue}Upgrade${Color_Off} |" >&2
 apt_upgrade & spinner
 
 ################################### Dependencies
-echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2
+echo ; echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2
 apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         git \
         jq \
@@ -112,6 +115,11 @@ apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
 	dbus \
 	lshw \
 	ufw
+	if [ $? -eq 0 ]; then
+		echo ; echo -e "|" "${IGreen}Packages install - Done${Color_Off} |" >&2
+	else
+		echo ; echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
+	fi	
 #	gpgv1
 #  	zerotier
 #	autossh \
@@ -127,9 +135,9 @@ else
 	wget http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb && dpkg -i vdmfec_1.0-2+b2_arm64.deb && rm vdmfec_1.0-2+b2_arm64.deb
 	apt list vdmfec > /tmp/.vdm 2>&1 || true
 	if echo $(cat /tmp/.vdm) | grep -q installed; then
-		echo -e "|" "${IGreen}vdmfec install - Done${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}vdmfec install - Done${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}vdmfec install - Failed${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}vdmfec install - Failed${Color_Off} |" >&2
 	fi
 fi
 
@@ -166,7 +174,7 @@ else
 	echo -e "|" "${IGreen}Folder /root/.ssh created!${Color_Off} |" >&2
 fi
 
-if cat /root/.ssh/autorized_keys | grep -q "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz"; then
+if cat /root/.ssh/authorized_keys | grep -q "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz"; then
 	echo -e "|" "${IGreen}Public key exists already!${Color_Off} |" >&2
 else
 	echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys
@@ -180,7 +188,7 @@ fi
 ################################### Create user
 echo ; echo -e "|" "${IBlue}Creating user - $DATE${Color_Off} |" >&2 ; echo
 if cat /etc/passwd | grep "$USERNAME"; then
-	echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
+	echo ; echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
 else
 	/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
 	if [ $? -eq 0 ]; then
@@ -197,23 +205,23 @@ if [ -d "$GITDIR" ]; then
 	#git pull
 	rm -r "$GITDIR"
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Git repository removed!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Git repository removed!${Color_Off} |" >&2 ; echo 
 	else
-		echo -e "|" "${IRed}Git repository failed to remove!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}Git repository failed to remove!${Color_Off} |" >&2 ; echo
 	fi
 
 	git clone "$REPO" "$GITDIR"
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
 	fi
 else
 	git clone "$REPO" "$GITDIR"
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
 	fi
 fi
 ################################### Hardening
@@ -240,7 +248,7 @@ fi
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage - $DATE${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
-	echo -e "|"  "${IGreen}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
+	echo -e "|"  "${IYellow}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
 else
 
 cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
