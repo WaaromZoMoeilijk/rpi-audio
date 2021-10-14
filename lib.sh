@@ -81,23 +81,23 @@ fatal() {
 }
 ###################################
 apt_install() {
-    apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo "Packages install - Done" || echo "Packages install - Failed"
+    apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages install - Done" || echo "Packages install - Failed"
 }
 ###################################
 apt_update() {
-    apt-get update -qq -o=Dpkg::Use-Pty=0 && echo "Packages update - Done" || echo "Packages update - Failed"
+    apt-get update -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages update - Done" || echo "Packages update - Failed"
 }
 ###################################
 apt_upgrade() {
-    sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -o "Dpkg::Use-Pty=0" && echo "Packages upgrade - Done" || echo "Packages upgrade - Failed"
+    sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -o "Dpkg::Use-Pty=0" && echo ; echo "Packages upgrade - Done" || echo "Packages upgrade - Failed"
 }
 ###################################
 apt_autoremove() {
-    apt-get autopurge -y -qq -o=Dpkg::Use-Pty=0 && echo "Packages autopurge - Done" || echo "Packages autopurge - Failed"
+    apt-get autopurge -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages autopurge - Done" || echo "Packages autopurge - Failed"
 }
 ###################################
 apt_autoclean() {
-    apt-get -y autoclean -qq -o=Dpkg::Use-Pty=0 && echo "Packages clean - Done" || echo "Packages clean - Failed"
+    apt-get -y autoclean -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages clean - Done" || echo "Packages clean - Failed"
 }
 ################################### Spinner during long commands
 spinner() {
