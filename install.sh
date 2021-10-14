@@ -246,7 +246,7 @@ fi
 
 ################################### Audio recording
 echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
-echo -e "|" "${IBlue} Audio recording - $DATE${Color_Off} |" > $LOG_FILE_AUDIO"
+echo -e "|" "${IBlue} Audio recording - $DATE${Color_Off} |" > "$LOG_FILE_AUDIO"
 /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1&
 
 clear
