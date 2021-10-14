@@ -211,6 +211,7 @@ if [ -d "$GITDIR" ]; then
 	fi
 
 	git clone "$REPO" "$GITDIR"
+	chown +x "$GITDIR"/scripts/*.sh
 	if [ $? -eq 0 ]; then
 		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
 	else
@@ -218,20 +219,23 @@ if [ -d "$GITDIR" ]; then
 	fi
 else
 	git clone "$REPO" "$GITDIR"
+	chown +x "$GITDIR"/scripts/*.sh
 	if [ $? -eq 0 ]; then
 		echo ; echo -e "|" "${IGreen}Git repository cloned!${Color_Off} |" >&2
 	else
 		echo ; echo -e "|" "${IRed}Git repository failed to clone!${Color_Off} |" >&2
 	fi
 fi
+
 ################################### Hardening
 echo ; echo -e "|" "${IBlue}Hardening - $DATE${Color_Off} |" >&2 ; echo
 /bin/bash "$GITDIR"/scripts/hardening.sh
 if [ $? -eq 0 ]; then
-	echo -e "|" "${IGreen}Hardening executed!${Color_Off} |" >&2
+	echo ; echo -e "|" "${IGreen}Hardening executed!${Color_Off} |" >&2
 else
-	echo -e "|" "${IRed}Hardening failed!${Color_Off} |" >&2
+	echo ; echo -e "|" "${IRed}Hardening failed!${Color_Off} |" >&2
 fi
+
 ################################### Dynamic overclock
 # Please at minimum add some heat sinks to the RPI. Better to also add a FAN. thermal throtteling is in place at 75 celcius 
 # Overclocking dynamically will only affect the temp on high load for longer periods. You can mitigate that with above.
