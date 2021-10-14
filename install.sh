@@ -21,10 +21,55 @@ root_check
 ################################### Prefer IPv4 for apt
 echo ; echo -e "|" "${IBlue}IPv4 APT${Color_Off} |" >&2 ; echo
 if [ -f /etc/apt/apt.conf.d/99force-ipv4 ]; then
-	echo "IPv4 Preference already set"
+	echo -e "|" "${IYellow}IPv4 Preference already set${Color_Off} |" >&2
 else
 	echo 'Acquire::ForceIPv4 "true";' >> /etc/apt/apt.conf.d/99force-ipv4
+	if [ $? -eq 0 ]; then
+		echo -e "|" "${IGreen}Set IPv4 Preference - Done${Color_Off} |" >&2	
+	else
+		echo -e "|" "${IRed}Set IPv4 Preference - Failed${Color_Off} |" >&2	
+	fi
 fi 
+
+################################### Upstart
+echo ; echo -e "|" "${IBlue}Setting up rc.local - $DATE${Color_Off} |" >&2 ; echo
+if [ -f "/etc/rc.local" ]; then
+      mv /etc/rc.local /etc/rc.local.backup
+fi
+
+if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
+	echo -e "|" "${IYellow}Setting up rc.local - Already exists${Color_Off} |" >&2
+else
+echo "Adding RC.local"
+cat > /etc/systemd/system/rc-local.service <<EOF
+[Unit]
+Description=/etc/rc.local
+ConditionPathExists=/etc/rc.local
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Add rc.local file
+cat > /etc/rc.local <<EOF
+#!/bin/sh -e
+/bin/bash "$GITDIR/install.sh" >> "$LOG_FILE_INSTALL" 2>&1&
+exit 0
+EOF
+
+	# Check if the above is succesfull 
+	if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
+		echo -e "|" "${IGreen}Setting up rc.local - Exists${Color_Off} |" >&2
+	else
+		echo -e "|" "${IRed}Setting up rc.local - Failed${Color_Off} |" >&2
+	fi
+fi
 
 #################################### Update
 echo ; echo -e "|" "${IBlue}Update${Color_Off} |" >&2 ; echo
@@ -41,18 +86,18 @@ apt_upgrade & spinner
 
 ################################### Dependencies
 echo ; echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2 ; echo
-apt install -y \
-	git \
-  	jq \
-	nano \
-	curl \
-	unattended-upgrades \
-	net-tools \
-	alsa-utils \
-	opus-tools \
-	ufw \
-	rsyslog \
-	fail2ban
+apt_install \
+        git \
+        jq \
+        nano \
+        curl \
+        unattended-upgrades \
+        net-tools \
+        alsa-utils \
+        opus-tools \
+        ufw \
+        rsyslog \
+        fail2ban
 #	gpgv1 
 #  	zerotier
 #	autossh \
