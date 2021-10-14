@@ -4,6 +4,7 @@
 dietpi-software install 73
 
 # UFW
+echo "yes" | ufw reset
 ufw default allow outgoing
 ufw default deny incoming
 ufw limit 22/tcp
