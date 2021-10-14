@@ -61,10 +61,15 @@ apt install -y \
 ################################### VDMFEC
 echo ; echo -e "|" "${IBlue}VMDFEC${Color_Off} |" >&2 ; echo
 if apt list vdmfec | grep -q installed; then
-	echo "vdmfec already installed"
+	echo -e "|" "${IYellow}vdmfec is already installed${Color_Off} |" >&2 
 else
 	# 64Bit change for other arm distros
 	wget http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb && dpkg -i vdmfec_1.0-2+b2_arm64.deb && rm vdmfec_1.0-2+b2_arm64.deb
+	if apt list vdmfec | grep -q installed; then
+		echo -e "|" "${IGreen}vdmfec install - Done${Color_Off} |" >&2
+	else
+		echo -e "|" "${IRed}vdmfec install - Failed${Color_Off} |" >&2
+	fi	
 fi
 
 ################################### Set timezone based upon WAN ip 
@@ -164,6 +169,7 @@ echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
 	echo -e "|"  "${IGreen}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
 else
+
 cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
 ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k $env{ID_FS_TYPE}"
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
@@ -187,9 +193,9 @@ fi
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 ################################### Audio recording
-#echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
-#/bin/bash "$GITDIR"/scripts/audio.sh
-# Setup mechanism to start on boot or only on USB insert
+echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
+echo -e "|" "${IBlue} Audio recording - $DATE${Color_Off} |" > $LOG_FILE_AUDIO"
+/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1&
 
 clear
 
