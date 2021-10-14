@@ -79,34 +79,34 @@ fatal() {
     echo "Error: $*"
     exit 1
 }
+################################### Spinner during long commands
+spinner() {
+    #printf '['
+    while ps "$!" > /dev/null; do
+        echo -n '⣾⣽⣻'
+        sleep '.7'
+    done
+    #echo ']'
+}
 ###################################
 apt_install() {
     apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo -e "|" "${IGreen}Packages install - Done${Color_Off} |" >&2 || echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
 }
 ###################################
 apt_update() {
-    apt-get update -qq -o=Dpkg::Use-Pty=0 #&& echo ; echo "Packages update - Done" || echo "Packages update - Failed"
+    apt-get update -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages update - Done" || echo "Packages update - Failed"
 }
 ###################################
 apt_upgrade() {
-    sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -o "Dpkg::Use-Pty=0" #&& echo ; echo "Packages upgrade - Done" || echo "Packages upgrade - Failed"
+    sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -o "Dpkg::Use-Pty=0" && echo ; echo "Packages upgrade - Done" || echo "Packages upgrade - Failed"
 }
 ###################################
 apt_autoremove() {
-    apt-get autopurge -y -qq -o=Dpkg::Use-Pty=0 #&& echo ; echo "Packages autopurge - Done" || echo "Packages autopurge - Failed"
+    apt-get autopurge -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages autopurge - Done" || echo "Packages autopurge - Failed"
 }
 ###################################
 apt_autoclean() {
-    apt-get -y autoclean -qq -o=Dpkg::Use-Pty=0 #&& echo ; echo "Packages clean - Done" || echo "Packages clean - Failed"
-}
-################################### Spinner during long commands
-spinner() {
-    printf '['
-    while ps "$!" > /dev/null; do
-        echo -n '⣾⣽⣻'
-        sleep '.7'
-    done
-    echo ']'
+    apt-get -y autoclean -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages clean - Done" || echo "Packages clean - Failed"
 }
 ################################### Whiptail auto-size
 calc_wt_size() {
