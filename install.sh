@@ -19,7 +19,7 @@ debug_mode
 root_check
 clear
 ################################### Prefer IPv4 for apt
-echo ; echo -e "|" "${IBlue}IPv4 APT Preference${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}IPv4 APT Preference - $DATE${Color_Off} |" >&2 ; echo
 if [ -f /etc/apt/apt.conf.d/99force-ipv4 ]; then
 	echo -e "|" "${IYellow}IPv4 Preference already set${Color_Off} |" >&2
 else
@@ -32,7 +32,7 @@ else
 fi
 
 ################################### Upstart
-echo ; echo -e "|" "${IBlue}Setting up rc.local - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Setting up rc.local${Color_Off} |" >&2 ; echo
 
 if [ -f "/etc/rc.local" ]; then
       mv /etc/rc.local /etc/rc.local.backup
@@ -86,7 +86,7 @@ EOF
 fi
 
 #################################### Update
-echo ; echo -e "|" "${IBlue} ==> Update: OS <==  - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue} ==> Update: OS <== ${Color_Off} |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 echo -e "|"  "${IBlue}Auto clean${Color_Off} |" >&2
@@ -126,7 +126,7 @@ apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
 #	raspberrypi-kernel-headers \
 
 ################################### VDMFEC
-echo ; echo -e "|" "${IBlue}VMDFEC - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}VMDFEC${Color_Off} |" >&2 ; echo
 apt list vdmfec > /tmp/.vdm 2>&1 || true
 if echo $(cat /tmp/.vdm) | grep -q installed; then
 	echo -e "|" "${IYellow}vdmfec is already installed${Color_Off} |" >&2
@@ -142,7 +142,7 @@ else
 fi
 
 ################################### Set timezone based upon WAN ip
-echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP${Color_Off} |" >&2 ; echo
 
 timedatectl set-timezone Europe/Amsterdam &>/tmp/.tz || true
 if echo $(cat /tmp/.tz) | grep -q "Failed to connect to bus: No such file or directory"; then
@@ -166,7 +166,7 @@ else
 fi
 
 ################################### Allow access, temp during dev
-echo ; echo -e "|" "${IBlue}Dev access - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Dev access${Color_Off} |" >&2 ; echo
 if [ -d "/root/.ssh" ]; then
 	echo -e "|" "${IGreen}Folder .ssh exists!${Color_Off} |" >&2
 else
@@ -186,7 +186,7 @@ else
 fi
 
 ################################### Create user
-echo ; echo -e "|" "${IBlue}Creating user - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Creating user${Color_Off} |" >&2 ; echo
 if cat /etc/passwd | grep "$USERNAME"; then
 	echo ; echo -e "|" "${IGreen}User exists!${Color_Off} |" >&2
 else
@@ -199,7 +199,7 @@ else
 fi
 
 ################################### Clone git repo
-echo ; echo -e "|" "${IBlue}Clone git repo - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Clone git repo${Color_Off} |" >&2 ; echo
 if [ -d "$GITDIR" ]; then
 	#cd "$GITDIR"
 	#git pull
@@ -228,7 +228,7 @@ else
 fi
 
 ################################### Hardening
-echo ; echo -e "|" "${IBlue}Hardening - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Hardening${Color_Off} |" >&2 ; echo
 /bin/bash "$GITDIR"/scripts/hardening.sh
 if [ $? -eq 0 ]; then
 	echo ; echo -e "|" "${IGreen}Hardening executed!${Color_Off} |" >&2
@@ -239,7 +239,7 @@ fi
 ################################### Dynamic overclock
 # Please at minimum add some heat sinks to the RPI. Better to also add a FAN. thermal throtteling is in place at 75 celcius 
 # Overclocking dynamically will only affect the temp on high load for longer periods. You can mitigate that with above.
-echo ; echo -e "|" "${IBlue}Overclock - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Overclock${Color_Off} |" >&2 ; echo
 if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 	/bin/bash "$GITDIR"/scripts/overclock.sh
 	if [ $? -eq 0 ]; then
@@ -250,7 +250,7 @@ if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 fi
 
 ################################### Storage, add auto mount & checks for usb drives
-echo ; echo -e "|" "${IBlue}Storage - $DATE${Color_Off} |" >&2 ; echo
+echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
 	echo -e "|"  "${IYellow}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
 else
@@ -260,26 +260,24 @@ ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
 
-	udevadm control --reload-rules
-
-	echo -e "|" "${IGreen}Storage automation has been setup!${Color_Off} |" >&2
+	udevadm control --reload-rules && echo -e "|" "${IGreen}Storage automation has been setup!${Color_Off} |" >&2 || echo -e "|" "${IGreen}Storage automation setup has failed!${Color_Off} |" >&2
 fi
 
 ################################### UPS
-#echo ; echo -e "|" "${IBlue}UPS - $DATE${Color_Off} |" >&2 ; echo
+#echo ; echo -e "|" "${IBlue}UPS${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/ups.sh
 
 ################################### ZeroTier
-#echo ; echo -e "|" "${IBlue}Zerotier/networking - $DATE${Color_Off} |" >&2 ; echo
+#echo ; echo -e "|" "${IBlue}Zerotier/networking${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/zerotier.sh
 
 ################################### LED / Buttons
-#echo ; echo -e "|" "${IBlue}LED/buttons - $DATE${Color_Off} |" >&2 ; echo
+#echo ; echo -e "|" "${IBlue}LED/buttons${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 ################################### Audio recording
-echo ; echo -e "|" "${IBlue}Audio - $DATE${Color_Off} |" >&2 ; echo
-echo -e "|" "${IBlue}Audio recording - $DATE${Color_Off} |" > "$LOG_FILE_AUDIO"
+echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
+echo -e "|" "${IBlue}Audio recording${Color_Off} |" > "$LOG_FILE_AUDIO"
 /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1&
 
 #exit 0
