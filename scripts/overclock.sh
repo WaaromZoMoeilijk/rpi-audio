@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 # No core freq changes for RPI4 
 # https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md
 # https://elinux.org/RPiconfig
