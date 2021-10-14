@@ -121,7 +121,7 @@ fi
 ################################### Set timezone based upon WAN ip 
 echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP${Color_Off} |" >&2 ; echo
 
-timedatectl set-timezone Europe/Amsterdam &>/tmp/.tz
+timedatectl set-timezone Europe/Amsterdam &>/tmp/.tz || true
 if echo $(cat /tmp/.tz) | grep -q "Failed to connect to bus: No such file or directory"; then
         echo -e "|" "${IYellow}Timezone set - Failed (first install fails because of dbus dependency. Next run will set the timezone automatically) ${Color_Off} |" >&2
 else
