@@ -86,7 +86,7 @@ EOF
 fi
 
 #################################### Update
-echo ; echo -e "|" "${IBlue} ==> Update: OS <== ${Color_Off} |" >&2 ; echo
+echo ; echo -e "|     " "${IBlue}Update: OS ${Color_Off}      |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 echo -e "|"  "${IBlue}Auto clean${Color_Off} |" >&2
