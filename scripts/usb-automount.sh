@@ -38,7 +38,7 @@ GITDIR='/opt/rpi-audio'
 [ "$FILESYSTEM" ] || fatal "Missing Parameter: FILESYSTEM"
 
 ################################### check defined log file
-if [ -b /dev"$DEVICE" ]; then
+if [ -b /dev/"$DEVICE" ]; then
     echo "Valid block device found"
 else
     echo "No valid partition / block device found, please format a single vfat partition and retry"
