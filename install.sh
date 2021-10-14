@@ -38,7 +38,8 @@ if [ -f "/etc/rc.local" ]; then
 fi
 
 if [ -f /etc/rc.local ]; then
-      	mv /etc/rc.local /etc/rc.local.backup
+	mv /etc/rc.local /etc/rc.local.backup
+else
 	if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
 		echo -e "|" "${IYellow}Setting up rc.local - Already exists${Color_Off} |" >&2
 	else
@@ -64,25 +65,25 @@ cat > /etc/rc.local <<EOF
 exit 0
 EOF
 
-		if [ -f /etc/rc.local ]; then
-			# Check if the above is succesfull
-			if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
-				echo -e "|" "${IGreen}Setting up rc.local - Exists${Color_Off} |" >&2
-			else
-				echo -e "|" "${IRed}Setting up rc.local - Failed, file exists but not the proper content${Color_Off} |" >&2
-			fi
+	if [ -f /etc/rc.local ]; then
+		# Check if the above is succesfull
+		if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
+			echo -e "|" "${IGreen}Setting up rc.local - Created${Color_Off} |" >&2
 		else
-			echo -e "|" "${IRed}Setting up rc.local - Failed${Color_Off} |" >&2
+			echo -e "|" "${IRed}Setting up rc.local - Failed, file exists but not the proper content${Color_Off} |" >&2
 		fi
+	else
+		echo -e "|" "${IRed}Setting up rc.local - Failed${Color_Off} |" >&2
+	fi
 
-		systemctl daemon-reload
-		systemctl enable rc-local.service
-		systemctl start rc-local.service
+	systemctl daemon-reload
+	systemctl enable rc-local.service
+	systemctl start rc-local.service
 	fi
 fi
 
 #################################### Update
-echo ; echo -e "|" "${IBlue} ==> Update: OS <==  - $DATE${Color_Off} |" >&2 ; echo
+echo -e "|" "${IBlue} ==> Update: OS <==  - $DATE${Color_Off} |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 echo -e "|"  "${IBlue}Auto clean${Color_Off} |" >&2
