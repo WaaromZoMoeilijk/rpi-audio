@@ -97,7 +97,8 @@ apt_install \
         opus-tools \
         ufw \
         rsyslog \
-        fail2ban
+        fail2ban \
+	dbus
 #	gpgv1 
 #  	zerotier
 #	autossh \
