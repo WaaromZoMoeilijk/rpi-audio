@@ -120,8 +120,10 @@ fi
 
 ################################### Set timezone based upon WAN ip 
 echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP${Color_Off} |" >&2 ; echo
-if timedatectl set-timezone Europe/Amsterdam | grep -q "Failed to connect to bus: No such file or directory"; then
-	echo -e "|" "${IYellow}First install fails because of dbus dependency. Next run will set the timezone automatically${Color_Off} |" >&2
+
+timedatectl set-timezone Europe/Amsterdam &>/tmp/.tz
+if echo $(cat /tmp/.tz) | grep -q "Failed to connect to bus: No such file or directory"; then
+        echo -e "|" "${IYellow}Timezone set - Failed (first install fails because of dbus dependency. Next run will set the timezone automatically) ${Color_Off} |" >&2
 else
 	if curl -sL 'ip-api.com/json' | grep -q "404"; then
 		curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
@@ -139,6 +141,7 @@ else
 		fi
 	fi
 fi
+
 ################################### Allow access, temp during dev
 echo ; echo -e "|" "${IBlue}Dev access${Color_Off} |" >&2 ; echo
 if [ -d "/root/.ssh" ]; then
