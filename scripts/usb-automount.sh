@@ -19,7 +19,7 @@ if [ "$DEBUG" -eq 1 ]; then
 fi
 }
 # 1 = ON | 0 = OFF
-DEBUG=1
+DEBUG=0
 debug_mode
 
 ################################### Options
