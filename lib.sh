@@ -173,7 +173,7 @@ autostart() {
 	        # Check if drive is empty
 	        if [ -z "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
         	        # Empty
-			echo
+			echo ; echo "EMPTY"
 			mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo -e "${IGreen}Created $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2 || echo -e "${IRed}Failed to create $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2
 			echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
 			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
@@ -187,7 +187,7 @@ autostart() {
 			# Check if .active resides in Recordings/
 			if [ -f "$MOUNT_DIR/$DEVICE/Recordings/.active" ]; then
 				# Yes
-				echo ; echo -e "${IYellow}Device has already been setup previously, importing${Color_Off}" >&2 
+				echo ; echo -e "${IYellow}NOT EMPTY - Device has already been setup previously, importing${Color_Off}" >&2 
                            	echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
 				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
 				if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE"/DevGnupg)" ]; then
