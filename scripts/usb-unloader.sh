@@ -54,6 +54,8 @@ autounload() {
 
 	if [ -d /mnt/"$DEVICE" ]; then
 		echo ; echo -e "|" "${IRed}Directory /mnt/$DEVICE still exists, removing${Color_Off} |" >&2
+		echo
+		umount -l "/mnt/$DEVICE" | sleep 1
 		rmdir "/mnt/$DEVICE"
 		if [ $? -eq 0 ]; then
 			echo ; echo -e "|" "${IGreen}Removed directory /mnt/$DEVICE${Color_Off} |" >&2
