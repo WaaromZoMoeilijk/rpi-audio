@@ -34,17 +34,13 @@ fi
 
 ################################### Upstart
 echo ; echo -e "|" "${IBlue}Setting up rc.local${Color_Off} |" >&2 ; echo
-
-if [ -f "/etc/rc.local" ]; then
-      mv /etc/rc.local /etc/rc.local.backup
-fi
-
 if [ -f /etc/rc.local ]; then
 	mv /etc/rc.local /etc/rc.local.backup
 else
 	systemctl disable rc-local.service || true
-	rm /etc/systemd/system/rc-local.service
-	systemctl daemon-reload
+	rm /etc/systemd/system/rc-local.service || true
+	systemctl daemon-reload || true
+	
 cat > /etc/systemd/system/rc-local.service <<EOF
 [Unit]
 Description=/etc/rc.local
