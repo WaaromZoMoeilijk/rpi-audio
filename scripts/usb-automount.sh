@@ -10,7 +10,7 @@
 # then fork out to speciality scripts
 #
 ################################### Variables & functions
-source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
+source /opt/rpi-audio/lib.sh
 
 ################################### Check for errors + debug code and abort if something isn't right
 # 1 = ON | 0 = OFF
