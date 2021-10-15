@@ -253,7 +253,7 @@ fi
 ################################### GPG
 GPG_RECIPIENT="recording@waaromzomoeilijk.nl"
 rm -rf /root/.gnupg
-gpg1 --list-keys
+gpg1 --homedir /root/.gnupg --list-keys
 
 cat >keydetails <<EOF
     %echo Generating a basic OpenPGP key
@@ -276,17 +276,17 @@ EOF
 gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
 
 # Set trust to 5 for the key so we can encrypt without prompt.
-echo -e "5\ny\n" |  gpg1 --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
+echo -e "5\ny\n" |  gpg1 --homedir /root/.gnupg --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
 
 # Test that the key was created and the permission the trust was set.
-gpg1 --list-keys
+gpg1 --homedir /root/.gnupg --list-keys
 
 # Test the key can encrypt and decrypt.
-gpg1 -e -a -r "${GPG_RECIPIENT}" keydetails
+gpg1 --homedir /root/.gnupg -e -a -r "${GPG_RECIPIENT}" keydetails
 
 # Delete the options and decrypt the original to stdout.
 rm keydetails
-gpg1 -d keydetails.asc
+gpg1 --homedir /root/.gnupg -d keydetails.asc
 rm keydetails.asc
 
 ################################### Storage, add auto mount & checks for usb drives
