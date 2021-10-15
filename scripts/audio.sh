@@ -329,54 +329,6 @@ tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 #--passphrase-file file reads the passphrase from a file
 #--passphrase string uses string as the passphrase
 # You'll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
-'''
-rm -rf .gnupg
-mkdir -m 0700 .gnupg
-touch .gnupg/gpg1.conf
-chmod 600 .gnupg/gpg1.conf
-tail -n +4 /usr/share/gnupg1/options.skel > .gnupg/gpg1.conf
-
-cd .gnupg
-# I removed this line since these are created if a list key is done.
-# touch .gnupg/{pub,sec}ring.gpg
-gpg1 --list-keys
-
-
-cat >keydetails <<EOF
-    %echo Generating a basic OpenPGP key
-    Key-Type: RSA
-    Key-Length: 4096
-    Subkey-Type: RSA
-    Subkey-Length: 4096
-    Name-Real: Recording
-    Name-Comment: Recording
-    Name-Email: recording@waaromzomoeilijk.nl
-    Expire-Date: 0
-    %no-ask-passphrase
-    %no-protection
-    %pubring pubring.kbx
-    %secring trustdb.gpg
-    # Do a commit here, so that we can later print "done" :-)
-    #%commit
-    #%echo done
-EOF
-
-gpg1 --verbose --batch --gen-key keydetails
-
-# Set trust to 5 for the key so we can encrypt without prompt.
-echo -e "5\ny\n" |  gpg1 --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
-
-# Test that the key was created and the permission the trust was set.
-gpg1 --list-keys
-
-# Test the key can encrypt and decrypt.
-gpg1 -e -a -r "${GPG_RECIPIENT}" keydetails
-
-# Delete the options and decrypt the original to stdout.
-rm keydetails
-gpg1 -d keydetails.asc
-rm keydetails.asc
-'
 
 ###################################### Create par2 files
 # Implement a last modified file check for the latest recording only
