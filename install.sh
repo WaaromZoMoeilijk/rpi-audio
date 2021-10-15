@@ -114,13 +114,14 @@ apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         fail2ban \
 	dbus \
 	lshw \
-	ufw
+	ufw \
+	gnupg1	
 	if [ $? -eq 0 ]; then
 		echo ; echo -e "|" "${IGreen}Packages install - Done${Color_Off} |" >&2
 	else
 		echo ; echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
 	fi	
-#	gpgv1
+
 #  	zerotier
 #	autossh \
 #	raspberrypi-kernel-headers \
