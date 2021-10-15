@@ -18,6 +18,7 @@ debug_mode
 ###################################  Check if script runs as root
 root_check
 clear
+
 ################################### Prefer IPv4 for apt
 echo ; echo -e "|" "${IBlue}IPv4 APT Preference - $DATE${Color_Off} |" >&2 ; echo
 if [ -f /etc/apt/apt.conf.d/99force-ipv4 ]; then
@@ -240,7 +241,6 @@ if [ -f /root/.gnupg/privatekey.asc ]; then
 else
 	echo -e "|" "${IBlue}GPG key creation${Color_Off} |" >&2 ; echo 
 	GPG_RECIPIENT="recording@waaromzomoeilijk.nl"
-	rm -rf /root/.gnupg
 	gpg1 --homedir /root/.gnupg --list-keys
 
 cat >keydetails <<EOF
