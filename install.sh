@@ -232,7 +232,7 @@ fi
 
 ################################### GPG
 echo ; echo -e "|" "${IBlue}GPG keys${Color_Off} |" >&2 ; echo
-if [ -f /root/.gnupg/privatekey.asc ]; then
+if gpg1 --list-key | grep -q "${GPG_RECIPIENT}"; then
 	echo -e "|" "${IBlue}GPG key exist${Color_Off} |" >&2
 else
 	echo -e "|" "${IBlue}GPG key creation${Color_Off} |" >&2 ; echo 
