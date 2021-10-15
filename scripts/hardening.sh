@@ -9,22 +9,20 @@ debug_mode
 
 # fail2ban install
 FB=$(dpkg-query -W -f='${Status}' fail2ban)
-if [ "$FB" == "ok installed" ; then
-	echo -e "${IYellow}Fail2ban is already installed${Color_Off}" >&2
+if [ "$FB" == "install ok installed" ]; then
+        echo -e "${IYellow}Fail2ban is already installed${Color_Off}" >&2
 else
-	apt install fail2ban -y
+        apt-get install fail2ban -y -qq
 
-	# Fail2ban jails
-	wget -O /etc/fail2ban/jail.local https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/static/jail.local
+        wget -O /etc/fail2ban/jail.local https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/static/jail.local
 
-	systemctl restart fail2ban
+        systemctl restart fail2ban
 
-	apt list fail2ban > /tmp/.f2b 2>&1 || true
-	if ! dpkg-query -W -f='${Status}' fail2ban | grep -q "ok installed"; then
-		echo ; echo -e "|" "${IGreen}Fail2ban install - Done${Color_Off} |" >&2
-	else
-		echo ; echo -e "|" "${IRed}Fail2ban install - Failed${Color_Off} |" >&2
-	fi
+        if [ "$FB" == "install ok installed" ]; then
+                echo ; echo -e "|" "${IGreen}Fail2ban install - Done${Color_Off} |" >&2
+        else
+                echo ; echo -e "|" "${IRed}Fail2ban install - Failed${Color_Off} |" >&2
+        fi
 fi
 
 # UFW
