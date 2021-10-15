@@ -371,6 +371,18 @@ else
     rmdir "$MNTPTR" &&  echo ; echo -e "|" "${IGreen}$MNTPTR folder removed${Color_Off} |" >&2 || echo ; echo -e "|" "${IRed}$MNTPTR folder remove - Failed${Color_Off} |" >&2
 fi	
 
+# test that this device has disappeared from mounted devices
+device_mounted=$(grep -q "$DEV" /etc/mtab)
+if [ "$device_mounted" ]; then
+	echo ; echo -e "|" "${IRed}Failed to Un-Mount, forcing umount -l${Color_Off} |" >&2
+	umount -l "/dev/$DEVICE"
+	if [ $? -eq 0 ]; then
+		rmdir "$MNTPTR" &&  echo ; echo -e "|" "${IGreen}$MNTPTR folder removed${Color_Off} |" >&2 || echo ; echo -e "|" "${IRed}$MNTPTR folder remove - Failed${Color_Off} |" >&2
+	fi
+else
+	echo ; echo -e "|" "${IGreen}Device not present in /etc/mtab${Color_Off} |" >&2
+fi
+
 ##################################### In progress flag
 rm /tmp/.recording.lock
 
