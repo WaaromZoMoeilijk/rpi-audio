@@ -13,11 +13,6 @@
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 
 ################################### Check for errors + debug code and abort if something isn't right
-debug_mode() {
-if [ "$DEBUG" -eq 1 ]; then
-    set -ex
-fi
-}
 # 1 = ON | 0 = OFF
 DEBUG=0
 debug_mode
@@ -28,10 +23,10 @@ MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 FILESYSTEM="$4"
 AUTO_START="$5" # Do we want to auto-start a new process? 0 - No; 1 - Yes
-DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
-USER=dietpi
-GITDIR='/opt/rpi-audio'
-LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
+#DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
+#USER=dietpi
+#GITDIR='/opt/rpi-audio'
+#LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
 
 ################################### check input parameters
 [ "$MOUNT_DIR" ] || fatal "Missing Parameter: MOUNT_DIR"
@@ -55,13 +50,17 @@ is_mounted() {
     grep -q "$1" /etc/mtab
 }
 
+success() {
+    echo -e "${IGreen}$*${Color_Off}" >&2 
+    exit 1
+}
+
 fatal() {
-    echo "Error: $*"
+    echo -e "${IRed}$*${Color_Off}" >&2 
     exit 1
 }
 ################################### Define parameters for auto-start program
 automount() {
-
     echo ; echo "--- USB Auto Mount --- $DATE" ; echo
 
     # Allow time for device to be added
@@ -73,30 +72,28 @@ automount() {
     [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "seems mountpoint $MOUNT_DIR/$DEVICE already exists"
 
     # make the mountpoint
-    mkdir "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Mountpoint $MOUNT_DIR/$DEVICE created${Color_Off}" >&2 || echo -e "${IRed}Mountpoint $MOUNT_DIR/$DEVICE creation failed${Color_Off}" >&2
+    mkdir "$MOUNT_DIR/$DEVICE" && success "Mountpoint $MOUNT_DIR/$DEVICE created" || fatal "Mountpoint $MOUNT_DIR/$DEVICE creation failed"
 
     # make sure the user owns this folder
-    chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Chown "$USER":"$USER" on $MOUNT_DIR/$DEVICE set ${Color_Off}" >&2 || echo -e "${IRed}Chown "$USER":"$USER" on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
-echo -e "${IGreen}${Color_Off}" >&2 || echo -e "${IRed}${Color_Off}" >&2
-
+    chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Chown $USER:$USER on $MOUNT_DIR/$DEVICE set" || fatal "Chown $USER:$USER on $MOUNT_DIR/$DEVICE failed"
 
     # mount the device base on USB file system
     case "$FILESYSTEM" in
 
         # most common file system for USB sticks
-        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT${Color_Off}" >&2 || echo -e "${IRed}Failed mounting VFAT parition${Color_Off}" >&2
+        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT" || fatal "Failed mounting VFAT parition"
               ;;
 
         # use locale setting for ntfs
-        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS${Color_Off}" >&2 || echo -e "${IRed}Failed mounting NTFS partition${Color_Off}" >&2
+        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS" || fatal "Failed mounting NTFS partition"
               ;;
 
         # ext2/3/4
-        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT${Color_Off}" >&2 || echo -e "${IRed}Failed mounting EXT partition${Color_Off}" >&2
-              ;;
-    esac
+        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT" || fatal "Failed mounting EXT partition"
+ 	      ;;	
+     esac
 	sleep 3
-	is_mounted "$DEVICE" && echo -e "${IGreen}Mount OK${Color_Off}" >&2 || echo -e "${IRed}Sumtin wong sir${Color_Off}" >&2
+	is_mounted "$DEVICE" && success "Mount OK" || fatal "Sumtin wong sir"
 }
 
 #################################### Auto Start Function
