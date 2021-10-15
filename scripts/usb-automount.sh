@@ -31,15 +31,17 @@ AUTO_START="$5" # Do we want to auto-start a new process? 0 - No; 1 - Yes
 
 ################################### check defined log file
 if [ -b /dev/"$DEVICE" ]; then
-    echo "Valid block device found"
+	echo "###########  Start usb-automount.sh  $(date)   ############"
+	echo ; success "Valid block device found"
 else
-    echo "No valid partition / block device found, please format a single vfat partition and retry"
-    exit 1
+	echo "###########  Start usb-automount.sh  $(date)   ############"
+	echo ; fatal "No valid partition / block device found, please format a single vfat partition and retry"
+	exit 1
 fi
 
-if [ -z "$LOG_FILE" ]; then
-    echo "No log file present"
-    exit 1
+if [ -z "$LOG_FILE" ]; then 
+	echo ; fatal "No log file present"
+	exit 1
 fi
 
 ################################### Mount & log
