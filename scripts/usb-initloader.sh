@@ -65,8 +65,9 @@ fi
 if [ "$1" == "ADD" ]; then
     DEVICE="$2"    # USB device name (kernel passed from udev rule)
     DEVTYPE="$3"   # USB device formatting type
-    if [ "$ROOTDRIVE" == "$DEVICE" ]; then
-        echo -e "|"  "${IGreen}Rootdrive: $ROOTDRIVE == udev:$DEVICE${Color_Off} |" >&2 
+    DEV=$(echo "$DEVICE" | cut -c -3)
+    if [ "$ROOTDRIVE" == "$DEV" ]; then
+        echo -e "|"  "${IGreen}Rootdrive: $ROOTDRIVE == udev:$DEV{Color_Off} |" >&2 
         exit 1
     fi
     echo -e "|"  "${IBlue}==> Adding USB Device $DEVICE$ <=={Color_Off} |" >> "$LOG_FILE" >&2
