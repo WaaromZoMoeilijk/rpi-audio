@@ -275,6 +275,9 @@ fi
 #echo ; echo -e "|" "${IBlue}LED/buttons${Color_Off} |" >&2 ; echo
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
+################################### 
+echo "$(DATE)" > /opt/.rpi-audio-init
+
 ################################### Audio recording
 echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
 echo -e "|" "${IBlue}Audio recording${Color_Off} |" > "$LOG_FILE_AUDIO"
