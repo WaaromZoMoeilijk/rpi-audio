@@ -217,7 +217,7 @@ autostart() {
         fi
         # Start audio recording
         echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
-        /bin/bash "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
+        "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
 
 ################################### usb-unloader.sh
