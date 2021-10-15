@@ -21,7 +21,7 @@ then
 fi
 }
 # 1 = ON | 0 = OFF
-DEBUG=1
+DEBUG=0
 debug_mode
 
 ################################### Storage
@@ -52,18 +52,17 @@ autounload() {
 	exit 1
 	fi
 
-	if [ -d /dev/"$DEVICE" ]; then
-		echo ; echo -e "|" "${IRed}Directory /dev/$DEVICE still exists, removing${Color_Off} |" >&2
-		rmdir "/dev/$DEVICE"
+	if [ -d /mnt/"$DEVICE" ]; then
+		echo ; echo -e "|" "${IRed}Directory /mnt/$DEVICE still exists, removing${Color_Off} |" >&2
+		rmdir "/mnt/$DEVICE"
 		if [ $? -eq 0 ]; then
-			echo ; echo -e "|" "${IGreen}Removed directory /dev/$DEVICE${Color_Off} |" >&2
+			echo ; echo -e "|" "${IGreen}Removed directory /mnt/$DEVICE${Color_Off} |" >&2
 		else
-			echo ; echo -e "|" "${IRed}Directory removal of /dev/$DEVICE failed${Color_Off} |" >&2
+			echo ; echo -e "|" "${IRed}Directory removal of /mnt/$DEVICE failed${Color_Off} |" >&2
 		fi		
 	else
-		echo ; echo -e "|" "${IGreen}Directory /dev/$DEVICE not present${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Directory /mnt/$DEVICE not present${Color_Off} |" >&2
 	fi
-
 }
 
 ################################### Unmount & log
