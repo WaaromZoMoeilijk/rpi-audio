@@ -171,7 +171,7 @@ autostart() {
         elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
                 echo -e "${IGreen}1 partition detected, checking if its been used before${Color_Off}" >&2
 	        # Check if drive is empty
-	        if ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE"; then
+	        if [ -z "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
         	        # Empty
 			echo
 			mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo -e "${IGreen}Created $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2 || echo -e "${IRed}Failed to create $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2
@@ -190,7 +190,7 @@ autostart() {
 				echo ; echo -e "${IYellow}Device has already been setup previously, importing${Color_Off}" >&2 
                            	echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
 				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
-				if ls -A "$MOUNT_DIR/$DEVICE"/DevGnupg; then
+				if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE"/DevGnupg)" ]; then
 					echo "Temporary Dev GPG key folder is empty, copying"
 					# Temporary export GPG keys to storage device.
 					mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
