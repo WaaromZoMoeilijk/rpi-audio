@@ -251,9 +251,14 @@ if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 fi
 
 ################################### GPG
-GPG_RECIPIENT="recording@waaromzomoeilijk.nl"
-rm -rf /root/.gnupg
-gpg1 --homedir /root/.gnupg --list-keys
+echo ; echo -e "|" "${IBlue}GPG keys${Color_Off} |" >&2 ; echo
+if [ -f /root/.gnupg/privatekey.asc ]; then
+	echo -e "|" "${IBlue}GPG key exist${Color_Off} |" >&2
+else
+	echo -e "|" "${IBlue}GPG key creation${Color_Off} |" >&2 ; echo 
+	GPG_RECIPIENT="recording@waaromzomoeilijk.nl"
+	rm -rf /root/.gnupg
+	gpg1 --homedir /root/.gnupg --list-keys
 
 cat >keydetails <<EOF
     %echo Generating a basic OpenPGP key
@@ -273,33 +278,32 @@ cat >keydetails <<EOF
     %echo done
 EOF
 
-gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
+	gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
 
-# Set trust to 5 for the key so we can encrypt without prompt.
-echo -e "5\ny\n" |  gpg1 --homedir /root/.gnupg --verbose --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
+	# Set trust to 5 for the key so we can encrypt without prompt.
+	echo -e "5\ny\n" |  gpg1 --homedir /root/.gnupg --verbose --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
 
-# Test that the key was created and the permission the trust was set.
-gpg1 --homedir /root/.gnupg --list-keys
+	# Test that the key was created and the permission the trust was set.
+	gpg1 --homedir /root/.gnupg --list-keys
 
-# Test the key can encrypt and decrypt.
-gpg1 --homedir /root/.gnupg -e -a -r "${GPG_RECIPIENT}" keydetails
+	# Test the key can encrypt and decrypt.
+	gpg1 --homedir /root/.gnupg -e -a -r "${GPG_RECIPIENT}" keydetails
 
-# Delete the options and decrypt the original to stdout.
-rm keydetails
-gpg1 --homedir /root/.gnupg -d keydetails.asc
-rm keydetails.asc
+	# Delete the options and decrypt the original to stdout.
+	rm keydetails
+	gpg1 --homedir /root/.gnupg -d keydetails.asc
+	rm keydetails.asc
+fi
 
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
 	echo -e "|" "${IYellow}/etc/udev/rules.d/85-usb-loader.rules exists${Color_Off} |" >&2
 else
-
 cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
 ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
-
 	udevadm control --reload-rules && echo -e "|" "${IGreen}Storage automation has been setup${Color_Off} |" >&2 || echo -e "|" "${IGreen}Storage automation setup has failed${Color_Off} |" >&2
 fi
 
@@ -316,7 +320,7 @@ fi
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 ################################### 
-echo "$DATE" > /opt/.rpi-audio-init
+echo "$(date)" > /opt/.rpi-audio-install.sh-finished
 
 ################################### Audio recording
 echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
