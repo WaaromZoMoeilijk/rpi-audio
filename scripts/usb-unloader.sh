@@ -26,8 +26,8 @@ AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
 
 ################################### check for defined log file
 if [ -z "$LOG_FILE" ]; then
-    echo ; echo -e "|" "${IRed}No log file${Color_Off} |" >&2
-    exit 1
+    	echo ; echo -e "|" "${IRed}No log file${Color_Off} |" >&2
+	touch "$LOG_FILE"
 fi
 
 ################################### Unmount & log
