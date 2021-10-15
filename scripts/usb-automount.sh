@@ -44,68 +44,6 @@ if [ -z "$LOG_FILE" ]; then
 	exit 1
 fi
 
-#################################### Auto Start Function
-autostart() {
-	echo ; echo "--- USB Auto Start Program --- $DATE" ; echo
-	DEV=$(echo "$DEVICE" | cut -c -3)
-	# Check # of partitions
-        if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
-	        echo -e "${IRed}More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again${Color_Off}" >&2
-		exit 1
-        elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
-		echo -e "${IRed}No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again${Color_Off}" >&2
-		exit 1
-        elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
-                echo -e "${IGreen}1 partition detected, checking if its been used before${Color_Off}" >&2
-	        # Check if drive is empty
-	        if [ -z "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ] ; then
-        	        # Empty
-			echo
-			mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo -e "${IGreen}Created $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2 || echo -e "${IRed}Failed to create $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2
-			echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
-			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
-			# Temporary export GPG keys to storage device.
-			mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
-			gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
-			gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
-			gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
-	        else
-        	        # Not Empty
-			# Check if .active resides in Recordings/
-			if [ -f "$MOUNT_DIR/$DEVICE/Recordings/.active" ]; then
-				# Yes
-				echo ; echo -e "${IYellow}Device has already been setup previously, importing${Color_Off}" >&2 
-                           	echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
-				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
-				if [ -z "$(ls -A MOUNT_DIR/$DEVICE/DevGnupg)" ]; then
-					echo "Temporary Dev GPG key folder is empty, copying"
-					# Temporary export GPG keys to storage device.
-					mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
-					gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
-					gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
-					gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
-				else
-					echo -e "${IYellow}Temporary Dev GPG key folder is populated already, skipping${Color_Off}" >&2 
-				fi
-			else
-				# No
-				echo
-				mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo -e "${IGreen}Created $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2 || echo -e "${IRed}Failed to create $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2
-				echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
-				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
-				# Temporary export GPG keys to storage device.
-				mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
-				gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
-				gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
-				gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
-                        fi
-                fi
-        fi
-        # Start audio recording
-        echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
-        "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
-}
-
 ################################### Mount & log
 automount >> "$LOG_FILE" 2>&1
 
