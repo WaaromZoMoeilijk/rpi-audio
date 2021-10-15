@@ -134,7 +134,8 @@ autostart() {
 	fi
 	
 	# Start audio recording
-	/bin/bash "$GITDIR/scripts/audio.sh"
+	echo >> "$LOG_FILE_AUDIO" ; echo $(date) >> "$LOG_FILE_AUDIO"
+	/bin/bash "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
 ################################### Mount & log
 automount >> "$LOG_FILE" 2>&1
