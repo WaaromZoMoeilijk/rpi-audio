@@ -330,7 +330,6 @@ tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 #--passphrase string uses string as the passphrase
 # You'll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
 '''
-EMAIL="recording@waaromzomoeilijk.nl"
 rm -rf .gnupg
 mkdir -m 0700 .gnupg
 touch .gnupg/gpg1.conf
@@ -358,20 +357,20 @@ cat >keydetails <<EOF
     %pubring pubring.kbx
     %secring trustdb.gpg
     # Do a commit here, so that we can later print "done" :-)
-    %commit
-    %echo done
+    #%commit
+    #%echo done
 EOF
 
 gpg1 --verbose --batch --gen-key keydetails
 
 # Set trust to 5 for the key so we can encrypt without prompt.
-echo -e "5\ny\n" |  gpg1 --command-fd 0 --expert --edit-key "$EMAIL" trust;
+echo -e "5\ny\n" |  gpg1 --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
 
 # Test that the key was created and the permission the trust was set.
 gpg1 --list-keys
 
 # Test the key can encrypt and decrypt.
-gpg1 -e -a -r "$EMAIL" keydetails
+gpg1 -e -a -r "${GPG_RECIPIENT}" keydetails
 
 # Delete the options and decrypt the original to stdout.
 rm keydetails
