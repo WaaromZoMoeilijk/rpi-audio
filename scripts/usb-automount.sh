@@ -127,8 +127,14 @@ autostart() {
                                 # Stop here or create a folder "Recordings" in the existing media root folder
 				# exit 1
 				# echo "It seems this drive contains data, please format as FAT32 and try again"
-	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Recordings folder on the external drive exists, reusing it now"
+	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings"
+				echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Recordings folder on the external drive exists, reusing it now"
 				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE" || echo "Set permissions on $MOUNT_DIR/$DEVICE failed"
+				# Temporary export GPG keys to storage device.
+				mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo "Created temp dev gnupg folder"
+				gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
+				gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
+				gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"				
 			fi
 	        fi
 	fi
