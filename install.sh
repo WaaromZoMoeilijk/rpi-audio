@@ -70,7 +70,6 @@ EOF
 	systemctl daemon-reload
 	systemctl enable rc-local.service
 	systemctl start rc-local.service
-	
 	if [ -f /etc/rc.local ]; then
 		# Check if the above is succesfull
 		if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
@@ -81,21 +80,19 @@ EOF
 	else
 		echo ; echo -e "|" "${IRed}Setting up rc.local - Failed${Color_Off} |" >&2
 	fi
-	
-
 fi
 
 ################################### Set timezone based upon WAN ip
 echo ; echo -e "|" "${IBlue}Set timezone based on WAN IP${Color_Off} |" >&2 ; echo
-timedatectl set-timezone Europe/Amsterdam &>/tmp/.tz || true
+timedatectl set-timezone Europe/Amsterdam &> /tmp/.tz || true
 if echo $(cat /tmp/.tz) | grep -q "Failed to connect to bus: No such file or directory"; then
-        echo -e "|" "${IYellow}Timezone set - Failed (first install fails because of dbus dependency. Next run will set the timezone automatically) ${Color_Off} |" >&2
+        echo ; echo -e "|" "${IYellow}Timezone set - Failed (first install fails because of dbus dependency. Next run will set the timezone automatically) ${Color_Off} |" >&2
 else
 	curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
 	if [ $? -eq 0 ]; then
-		echo -e "|" "${IGreen}Timezone set${Color_Off} |" >&2
+		echo ; echo -e "|" "${IGreen}Timezone set${Color_Off} |" >&2
 	else
-		echo -e "|" "${IRed}Timezone set failed${Color_Off} |" >&2
+		echo ; echo -e "|" "${IRed}Timezone set failed${Color_Off} |" >&2
 	fi
 fi
 
