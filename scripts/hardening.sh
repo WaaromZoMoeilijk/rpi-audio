@@ -8,7 +8,8 @@ DEBUG=0
 debug_mode
 
 # fail2ban install
-if ! dpkg-query -W -f='${Status}' fail2ban | grep -q "ok installed"; then
+FB=$(dpkg-query -W -f='${Status}' fail2ban)
+if [ "$FB" == "ok installed" ; then
 	echo -e "${IYellow}Fail2ban is already installed${Color_Off}" >&2
 else
 	apt install fail2ban -y
