@@ -41,3 +41,10 @@
 
 #### Failsafe checks
 -
+
+#### Log files
+- /var/tmp/dietpi/logs/{dietpi-automation_custom_script.log,dietpi-firstboot.log,dietpi-firstrun-setup.log,dietpi-update.log,fs_partition_resize.log}
+- /var/log/{audio-recording.log,audio-install.log,usb-automount.log}
+
+#### Dirs
+- /opt/rpi-audio
