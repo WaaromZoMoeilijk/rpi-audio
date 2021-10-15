@@ -125,6 +125,7 @@ apt-get install -y -qq \
 	lshw \
 	ufw \
 	rsync \
+	par2 \
 	gnupg1	
 	if [ $? -eq 0 ]; then
 		echo ; echo -e "${IGreen}Packages install - Done${Color_Off}" >&2 ; echo
