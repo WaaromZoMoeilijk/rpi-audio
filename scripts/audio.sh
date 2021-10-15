@@ -312,7 +312,7 @@ fi
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
-gpgv1 	--encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+gpg1 	--encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
@@ -320,10 +320,21 @@ tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 
 # Reverse Pipe
 #vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
-#gpgv1 --decrypt > /root/recording.wav 
+#gpg1 --decrypt > /root/recording.wav 
 
 # SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
 #ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
+
+# GPG additions
+#--passphrase-file file reads the passphrase from a file
+#--passphrase string uses string as the passphrase
+# You'll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
+
+#Although it's possible to automate encryption by putting cleartext password strings in files, it would defeat the entire purpose for using GPG.
+#To just safeguard data from compromise rather then transmit it to third parties, encrypt with your OWN public key. This will make it possible to automate encryption using non-interactive script, ie:
+#gpg --batch --yes --trust-model always -r $YOURGPGPUBKEYEMAILADDRESS -e ./file.txt
+#PLEASE NOTE: I upload my PUBLIC key to the public server I want to protect data on, keeping the PRIVATE key apart from it. So no passwords or even a private key to decrypt with on that public server at risk of compromise.
+#Obviously if you're NOT using your own public key, tread carefully with the --trust-model always switch.
 
 ###################################### Create par2 files
 # Implement a last modified file check for the latest recording only
