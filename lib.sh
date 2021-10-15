@@ -78,7 +78,6 @@ is_mounted() {
 ################################### easy colored output
 success() {
     echo -e "${IGreen}$*${Color_Off}" >&2 
-    exit 1
 }
 
 fatal() {
