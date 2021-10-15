@@ -253,7 +253,6 @@ fi
 ################################### GPG
 GPG_RECIPIENT="recording@waaromzomoeilijk.nl"
 rm -rf /root/.gnupg
-cd /root/.gnupg
 gpg1 --list-keys
 
 cat >keydetails <<EOF
@@ -270,8 +269,8 @@ cat >keydetails <<EOF
     %no-protection
     #%pubring pubring.kbx
     #%secring trustdb.gpg
-    #%commit
-    #%echo done
+    %commit
+    %echo done
 EOF
 
 gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
