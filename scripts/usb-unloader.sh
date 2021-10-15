@@ -42,25 +42,28 @@ fi
 autounload() {
 	echo ; echo -e "|" "${IBlue} --- USB UnLoader --- ${Color_Off} |" >&2 ; echo    
 
-    if [ -z "$MOUNT_DIR" ]; then
+	if [ -z "$MOUNT_DIR" ]; then
 	     echo ; echo -e "|" "${IRed}Failed to supply Mount Dir parameter${Color_Off} |" >&2
-        exit 1
-    fi
+	exit 1
+	fi
 
-    if [ -z "$DEVICE" ]; then
+	if [ -z "$DEVICE" ]; then
 	     echo ; echo -e "|" "${IRed}Failed to supply DEVICE parameter${Color_Off} |" >&2
-        exit 1
-    fi
+	exit 1
+	fi
 
-    # test that this device has disappeared from mounted devices
-    device_mounted=$(grep -q "$DEV" /etc/mtab)
-    if [ "$device_mounted" ]; then
-         echo ; echo -e "|" "${IRed}/dev/$DEVICE failed to Un-Mount, forcing umount -l${Color_Off} |" >&2
-	 	umount -l "/dev/$DEVICE"
-    		#exit 1
-    else
-         echo ; echo -e "|" "${IGreen}/dev/$DEVICE successfully Un-Mounted${Color_Off} |" >&2
-    fi
+	if [ -d /dev/"$DEVICE" ]; then
+		echo ; echo -e "|" "${IRed}Directory /dev/$DEVICE still exists, removing${Color_Off} |" >&2
+		rmdir "/dev/$DEVICE"
+		if [ $? -eq 0 ]; then
+			echo ; echo -e "|" "${IGreen}Removed directory /dev/$DEVICE${Color_Off} |" >&2
+		else
+			echo ; echo -e "|" "${IRed}Directory removal of /dev/$DEVICE failed${Color_Off} |" >&2
+		fi		
+	else
+		echo ; echo -e "|" "${IGreen}Directory /dev/$DEVICE not present${Color_Off} |" >&2
+	fi
+
 }
 
 ################################### Unmount & log
@@ -69,7 +72,7 @@ autounload >> "$LOG_FILE" 2>&1
 ################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
 	echo ; echo -e "|" "${IBlue} --- USB Auto end script --- ${Color_Off} |" >&2 ; echo
-	# command
+	echo "No commands setup for the auto end script"
 fi
 
 ################################### Cleanup & exit
