@@ -14,12 +14,6 @@
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 
 ################################### Check for errors + debug code and abort if something isn't right
-debug_mode() {
-if [ "$DEBUG" -eq 1 ]
-then
-    set -ex
-fi
-}
 # 1 = ON | 0 = OFF
 DEBUG=0
 debug_mode
@@ -29,43 +23,12 @@ LOG_FILE="$1"
 MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
-USER='dietpi'
-GITDIR='/opt/rpi-audio'
 
 ################################### check for defined log file
 if [ -z "$LOG_FILE" ]; then
     echo ; echo -e "|" "${IRed}No log file${Color_Off} |" >&2
     exit 1
 fi
-
-################################### Functions
-autounload() {
-	echo ; echo -e "|" "${IBlue} --- USB UnLoader --- ${Color_Off} |" >&2 ; echo    
-
-	if [ -z "$MOUNT_DIR" ]; then
-	     echo -e "${IRed}Failed to supply Mount Dir parameter${Color_Off}" >&2
-	exit 1
-	fi
-
-	if [ -z "$DEVICE" ]; then
-	     echo -e "${IRed}Failed to supply DEVICE parameter${Color_Off}" >&2
-	exit 1
-	fi
-
-	if [ -d /mnt/"$DEVICE" ]; then
-		echo -e "${IRed}Directory /mnt/$DEVICE still exists, removing${Color_Off}" >&2
-		echo
-		umount -l "/mnt/$DEVICE" | sleep 1
-		rmdir "/mnt/$DEVICE"
-		if [ $? -eq 0 ]; then
-			echo -e "${IGreen}Removed directory /mnt/$DEVICE${Color_Off}" >&2
-		else
-			echo -e "${IRed}Directory removal of /mnt/$DEVICE failed${Color_Off}" >&2
-		fi		
-	else
-		echo -e "${IGreen}Directory /mnt/$DEVICE not present${Color_Off}" >&2
-	fi
-}
 
 ################################### Unmount & log
 autounload >> "$LOG_FILE" 2>&1
