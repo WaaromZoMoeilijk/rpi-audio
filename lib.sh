@@ -190,7 +190,7 @@ autostart() {
 				echo ; echo -e "${IYellow}Device has already been setup previously, importing${Color_Off}" >&2 
                            	echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
 				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
-				if [ -z "$(ls -A MOUNT_DIR/$DEVICE/DevGnupg)" ]; then
+				if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE"/DevGnupg)" ]; then
 					echo "Temporary Dev GPG key folder is empty, copying"
 					# Temporary export GPG keys to storage device.
 					mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
