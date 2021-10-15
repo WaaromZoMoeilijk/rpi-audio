@@ -1,4 +1,3 @@
-
 #!/bin/bash
 ##################################### Links
 # https://projects-raspberry.com/recording-sound-on-the-raspberry-pi
