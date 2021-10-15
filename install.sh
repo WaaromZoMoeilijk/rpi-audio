@@ -100,7 +100,7 @@ echo ; echo -e "|" "${IBlue}Upgrade${Color_Off} |" >&2
 
 ################################### Dependencies
 echo ; echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2
-'apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
+apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         git \
         jq \
         nano \
@@ -125,7 +125,7 @@ echo ; echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2
 #  	zerotier
 #	autossh \
 #	raspberrypi-kernel-headers \
-'
+
 ################################### VDMFEC
 echo ; echo -e "|" "${IBlue}VMDFEC${Color_Off} |" >&2 ; echo
 apt list vdmfec > /tmp/.vdm 2>&1 || true
