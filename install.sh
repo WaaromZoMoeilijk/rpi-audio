@@ -12,7 +12,7 @@ source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/m
 ###################################  Check for errors + debug code and abort if something isn't right
 # 1 = ON
 # 0 = OFF
-DEBUG=0
+DEBUG=1
 debug_mode
 
 ###################################  Check if script runs as root
@@ -276,7 +276,7 @@ EOF
 gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
 
 # Set trust to 5 for the key so we can encrypt without prompt.
-echo -e "5\ny\n" |  gpg1 --homedir /root/.gnupg --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
+echo -e "5\ny\n" |  gpg1 --homedir /root/.gnupg --verbose --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
 
 # Test that the key was created and the permission the trust was set.
 gpg1 --homedir /root/.gnupg --list-keys
