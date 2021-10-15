@@ -5,11 +5,6 @@
 - [Download](https://www.balena.io/etcher/) and install Balena Etcher.
 - Download client RaspberryPI4 (8GB) (ARMv6) | [Download client RaspberryPI4 (8GB) (ARMv8) (64Bit)](https://nextcloud.waaromzomoeilijk.nl/s/rkWaBseReC3pxNf)
 - Flash the image to an SD Card / SSD (recommended).
-- Boot the RaspberryPI with Microphone inserted via USB.
-- Let the installation run and automatically reboot after install (SD card: X / SSD: less then 5 mins).
-- Once its rebooted, insert USB drive (formatted to FAT32/EXT{2,3,4}/NTFS and only 1 partition) and the recording will start.
-- After this insert it will also start recording on boot.
-- Stop the recording from cli: `ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT`
 
 #### Enable SSD boot (most recently purchased RPI4's will already have this enabled)
 - [Download](https://www.raspberrypi.org/downloads) Raspberry Pi Imager 
@@ -23,13 +18,18 @@
 - The green activity LED will blink with a steady pattern and the HDMI display will be green on success.
 - `Power off` the Raspberry Pi and `remove the SD card`.
 
+#### Default login
+- Username: `dietpi`
+- Drowssap: `raspberry`
+
 #### Workflow - Dev RPI DietPi
+- Boot the RaspberryPI with Microphone inserted via USB. (not required for first install)
 - Image contains [dietpi.txt](https://github.com/WaaromZoMoeilijk/rpi-audio/blob/main/dietpi.txt) which will handle the first setup and pull & execute [install.sh](https://github.com/WaaromZoMoeilijk/rpi-audio/blob/main/install.sh) 
-- install.sh will install and set all requirements and config. It will run on every boot from now on, checking wether settings have already been applied, if yes skip or update.
-- Once the installation is done the device will reboot.
-- Now insert your USB microphone.
-- Once the device is rebooted and up, insert your USB storage and the recording will begin shortly.
-- You can now leave the USB connected during reboots and it will auto start recording on boot.
+- install.sh will install and set all requirements and config. It will run on every boot from now on, checking for updates and wether settings have already been applied, if yes skip or update.
+- Let the installation run and automatically reboot after install (SD card: X / SSD: less then 5 mins).
+- Once the device is rebooted and up, insert USB storage (formatted to FAT32/NTFS/EXT{2,3,4} and only 1 partition) and the recording will begin shortly.
+- You can now leave the USB storage connected during reboots and it will auto start recording on boot.
+- Stop the recording from cli: `ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT`
 
 #### Storage requirements
 - Preformat storage device with a single partition either FAT32/NTFS/EXT{2,3,4} 
@@ -40,8 +40,4 @@
 - Freespace check is at least 500MB and 10% of the total storage. Same goes for local storage (backup)
 
 #### Failsafe checks
--
--
--
--
 -
