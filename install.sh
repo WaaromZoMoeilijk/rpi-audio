@@ -250,6 +250,46 @@ if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 	fi
 fi
 
+################################### GPG
+GPG_RECIPIENT="recording@waaromzomoeilijk.nl"
+rm -rf /root/.gnupg
+cd /root/.gnupg
+gpg1 --list-keys
+
+cat >keydetails <<EOF
+    %echo Generating a basic OpenPGP key
+    Key-Type: RSA
+    Key-Length: 4096
+    Subkey-Type: RSA
+    Subkey-Length: 4096
+    Name-Real: Recording
+    Name-Comment: Recording
+    Name-Email: "${GPG_RECIPIENT}"
+    Expire-Date: 0
+    %no-ask-passphrase
+    %no-protection
+    #%pubring pubring.kbx
+    #%secring trustdb.gpg
+    #%commit
+    #%echo done
+EOF
+
+gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
+
+# Set trust to 5 for the key so we can encrypt without prompt.
+echo -e "5\ny\n" |  gpg1 --command-fd 0 --expert --edit-key "${GPG_RECIPIENT}" trust;
+
+# Test that the key was created and the permission the trust was set.
+gpg1 --list-keys
+
+# Test the key can encrypt and decrypt.
+gpg1 -e -a -r "${GPG_RECIPIENT}" keydetails
+
+# Delete the options and decrypt the original to stdout.
+rm keydetails
+gpg1 -d keydetails.asc
+rm keydetails.asc
+
 ################################### Storage, add auto mount & checks for usb drives
 echo ; echo -e "|" "${IBlue}Storage${Color_Off} |" >&2 ; echo
 if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
