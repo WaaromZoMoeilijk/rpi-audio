@@ -276,7 +276,7 @@ fi
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 ################################### 
-echo "$(DATE)" > /opt/.rpi-audio-init
+echo "$DATE" > /opt/.rpi-audio-init
 
 ################################### Audio recording
 echo ; echo -e "|" "${IBlue}Audio${Color_Off} |" >&2 ; echo
