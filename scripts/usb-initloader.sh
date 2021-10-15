@@ -27,7 +27,7 @@
 # Location of the three scripts (** MUST match udev rules **)
 #
 ################################### Variables & functions
-source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) 
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 
 ################################### Check for errors + debug code and abort if something isn't right
 debug_mode() {
