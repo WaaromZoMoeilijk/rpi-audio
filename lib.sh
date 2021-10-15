@@ -75,9 +75,14 @@ fi
 is_mounted() {
     grep -q "$1" /etc/mtab
 }
-###################################
+################################### easy colored output
+success() {
+    echo -e "${IGreen}$*${Color_Off}" >&2 
+    exit 1
+}
+
 fatal() {
-    echo "Error: $*"
+    echo -e "${IRed}$*${Color_Off}" >&2 
     exit 1
 }
 ################################### Spinner during long commands
@@ -91,86 +96,23 @@ spinner() {
 }
 ###################################
 apt_install() {
-    apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo -e "|" "${IGreen}Packages install - Done${Color_Off} |" >&2 || echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
+    apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo -e "|" "${IGreen}Packages install done${Color_Off} |" >&2 || echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
 }
 ###################################
 apt_update() {
-    apt-get update -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages update - Done" || echo "Packages update - Failed"
+    apt-get update -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages update done" || echo "Packages update - Failed"
 }
 ###################################
 apt_upgrade() {
-    sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq -o "Dpkg::Use-Pty=0" && echo ; echo "Packages upgrade - Done" || echo "Packages upgrade - Failed"
+    sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq && echo ; echo "Packages upgrade done" || echo "Packages upgrade - Failed"
 }
 ###################################
 apt_autoremove() {
-    apt-get autopurge -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages autopurge - Done" || echo "Packages autopurge - Failed"
+    apt-get autopurge -y -qq && echo ; echo "Packages autopurge done" || echo "Packages autopurge - Failed"
 }
 ###################################
 apt_autoclean() {
-    apt-get -y autoclean -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages clean - Done" || echo "Packages clean - Failed"
-}
-################################### Whiptail auto-size
-calc_wt_size() {
-    WT_HEIGHT=17
-    WT_WIDTH=$(tput cols)
-
-    if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 60 ]; then
-        WT_WIDTH=80
-    fi
-    if [ "$WT_WIDTH" -gt 178 ]; then
-        WT_WIDTH=120
-    fi
-    WT_MENU_HEIGHT=$((WT_HEIGHT-7))
-    export WT_MENU_HEIGHT
-}
-###################################
-msg_box() {
-    [ -n "$2" ] && local SUBTITLE=" - $2"
-    whiptail --title "$TITLE$SUBTITLE" --msgbox "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3
-}
-###################################
-yesno_box_yes() {
-    [ -n "$2" ] && local SUBTITLE=" - $2"
-    if (whiptail --title "$TITLE$SUBTITLE" --yesno "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
-    then
-        return 0
-    else
-        return 1
-    fi
-}
-###################################
-yesno_box_no() {
-    [ -n "$2" ] && local SUBTITLE=" - $2"
-    if (whiptail --title "$TITLE$SUBTITLE" --defaultno --yesno "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
-    then
-        return 0
-    else
-        return 1
-    fi
-}
-###################################
-input_box() {
-    [ -n "$2" ] && local SUBTITLE=" - $2"
-    local RESULT && RESULT=$(whiptail --title "$TITLE$SUBTITLE" --nocancel --inputbox "$1" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
-    echo "$RESULT"
-}
-###################################
-input_box_flow() {
-    local RESULT
-    while :
-    do
-        RESULT=$(input_box "$1" "$2")
-        if [ -z "$RESULT" ]
-        then
-            msg_box "Input is empty, please try again." "$2"
-        elif ! yesno_box_yes "Is this correct? $RESULT" "$2"
-        then
-            msg_box "OK, please try again." "$2"
-        else
-            break
-        fi
-    done
-    echo "$RESULT"
+    apt-get -y autoclean -qq && echo ; echo "Packages clean done" || echo "Packages clean - Failed"
 }
 ###################################
 install_if_not() {
@@ -179,6 +121,134 @@ then
     apt update -q4 & spinner_loading && RUNLEVEL=1 apt install "${1}" -y
 fi
 }
+################################### Define parameters for auto-start program
+automount() {
+    echo ; echo "--- USB Auto Mount --- $DATE" ; echo
+
+    # Allow time for device to be added
+    sleep 2
+
+    is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
+
+    # test mountpoint - it shouldn't exist
+    [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "seems mountpoint $MOUNT_DIR/$DEVICE already exists"
+
+    # make the mountpoint
+    mkdir "$MOUNT_DIR/$DEVICE" && success "Mountpoint $MOUNT_DIR/$DEVICE created" || fatal "Mountpoint $MOUNT_DIR/$DEVICE creation failed"
+
+    # make sure the user owns this folder
+    chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Chown $USER:$USER on $MOUNT_DIR/$DEVICE set" || fatal "Chown $USER:$USER on $MOUNT_DIR/$DEVICE failed"
+
+    # mount the device base on USB file system
+    case "$FILESYSTEM" in
+
+        # most common file system for USB sticks
+        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT" || fatal "Failed mounting VFAT parition"
+              ;;
+
+        # use locale setting for ntfs
+        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS" || fatal "Failed mounting NTFS partition"
+              ;;
+
+        # ext2/3/4
+        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT" || fatal "Failed mounting EXT partition"
+ 	      ;;	
+     esac
+	sleep 3
+	is_mounted "$DEVICE" && success "Mount OK" || fatal "Sumtin wong sir"
+}
+
+#################################### Auto Start Function
+autostart() {
+	echo ; echo "--- USB Auto Start Program --- $DATE" ; echo
+	DEV=$(echo "$DEVICE" | cut -c -3)
+	# Check # of partitions
+        if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
+	        echo -e "${IRed}More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again${Color_Off}" >&2
+		exit 1
+        elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
+		echo -e "${IRed}No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again${Color_Off}" >&2
+		exit 1
+        elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
+                echo -e "${IGreen}1 partition detected, checking if its been used before${Color_Off}" >&2
+	        # Check if drive is empty
+	        if [ -z "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ] ; then
+        	        # Empty
+			echo
+			mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo -e "${IGreen}Created $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2 || echo -e "${IRed}Failed to create $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2
+			echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
+			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
+			# Temporary export GPG keys to storage device.
+			mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
+			gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
+			gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
+			gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
+	        else
+        	        # Not Empty
+			# Check if .active resides in Recordings/
+			if [ -f "$MOUNT_DIR/$DEVICE/Recordings/.active" ]; then
+				# Yes
+				echo ; echo -e "${IYellow}Device has already been setup previously, importing${Color_Off}" >&2 
+                           	echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
+				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
+				if [ -z "$(ls -A MOUNT_DIR/$DEVICE/DevGnupg)" ]; then
+					echo "Temporary Dev GPG key folder is empty, copying"
+					# Temporary export GPG keys to storage device.
+					mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
+					gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
+					gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
+					gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
+				else
+					echo -e "${IYellow}Temporary Dev GPG key folder is populated already, skipping${Color_Off}" >&2 
+				fi
+			else
+				# No
+				echo
+				mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo -e "${IGreen}Created $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2 || echo -e "${IRed}Failed to create $MOUNT_DIR/$DEVICE/Recordings${Color_Off}" >&2
+				echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo -e "${IGreen}Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2 || echo -e "${IRed}Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active${Color_Off}" >&2
+				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo -e "${IGreen}Set permissions on $MOUNT_DIR/$DEVICE${Color_Off}" >&2 || echo -e "${IRed}Set permissions on $MOUNT_DIR/$DEVICE failed${Color_Off}" >&2
+				# Temporary export GPG keys to storage device.
+				mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && echo -e "${IGreen}Created temp dev gnupg folder${Color_Off}" >&2 || echo -e "${IRed}Failed to create temp dev gnupg folder${Color_Off}" >&2
+				gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
+				gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
+				gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
+                        fi
+                fi
+        fi
+        # Start audio recording
+        echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
+        /bin/bash "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
+}
+
+################################### usb-unloader.sh
+autounload() {
+	echo ; echo -e "|" "${IBlue} --- USB UnLoader --- ${Color_Off} |" >&2 ; echo    
+
+	if [ -z "$MOUNT_DIR" ]; then
+	     echo -e "${IRed}Failed to supply Mount Dir parameter${Color_Off}" >&2
+	exit 1
+	fi
+
+	if [ -z "$DEVICE" ]; then
+	     echo -e "${IRed}Failed to supply DEVICE parameter${Color_Off}" >&2
+	exit 1
+	fi
+
+	if [ -d /mnt/"$DEVICE" ]; then
+		echo -e "${IRed}Directory /mnt/$DEVICE still exists, removing${Color_Off}" >&2
+		echo
+		umount -l "/mnt/$DEVICE" | sleep 1
+		rmdir "/mnt/$DEVICE"
+		if [ $? -eq 0 ]; then
+			echo -e "${IGreen}Removed directory /mnt/$DEVICE${Color_Off}" >&2
+		else
+			echo -e "${IRed}Directory removal of /mnt/$DEVICE failed${Color_Off}" >&2
+		fi		
+	else
+		echo -e "${IGreen}Directory /mnt/$DEVICE not present${Color_Off}" >&2
+	fi
+}
+
 ###################################
 print_text_in_color() {
 printf "%b%s%b\n" "$1" "$2" "$Color_Off"
