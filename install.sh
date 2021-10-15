@@ -90,17 +90,17 @@ echo ; echo -e "|     " "${IBlue}Update: OS ${Color_Off}      |" >&2 ; echo
 export "DEBIAN_FRONTEND=noninteractive"
 export "DEBIAN_PRIORITY=critical"
 echo -e "|" "${IBlue}Auto clean${Color_Off} |" >&2
-apt_autoclean & spinner
+#apt_autoclean & spinner
 echo ; echo -e "|" "${IBlue}Auto purge${Color_Off} |" >&2
-apt_autoremove & spinner
+#apt_autoremove & spinner
 echo ; echo -e "|" "${IBlue}Update${Color_Off} |" >&2
-apt_update & spinner
+#apt_update & spinner
 echo ; echo -e "|" "${IBlue}Upgrade${Color_Off} |" >&2
-apt_upgrade & spinner
+#apt_upgrade & spinner
 
 ################################### Dependencies
 echo ; echo -e "|" "${IBlue}Dependancies${Color_Off} |" >&2
-apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
+'apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         git \
         jq \
         nano \
@@ -125,7 +125,7 @@ apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
 #  	zerotier
 #	autossh \
 #	raspberrypi-kernel-headers \
-
+'
 ################################### VDMFEC
 echo ; echo -e "|" "${IBlue}VMDFEC${Color_Off} |" >&2 ; echo
 apt list vdmfec > /tmp/.vdm 2>&1 || true
