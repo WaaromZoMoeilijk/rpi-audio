@@ -103,24 +103,32 @@ autostart() {
 	DEV=$(echo "$DEVICE" | cut -c -3)
 	# Check # of partitions
         if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
-	        echo "More then 1 parition detected, please format your drive and create a single FAT32 partition and try again"
+	        echo "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
+		exit 1
+        elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
+		echo "No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
 		exit 1
         elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
                 echo "1 partition detected, checking if its been used before"
 	        # Check if drive is empty
-	        if [ -z "$(ls -A "$MOUNT_DIR/$DEVICE")" ] ; then
+	        if [ -z "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ] ; then
         	        # Empty
-                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive"
-			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE"
+                	mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Created Recordings folder on the external drive" || echo "Failed to create Recordings folder on the external drive"
+			chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE" || echo "Set permissions on $MOUNT_DIR/$DEVICE failed"
 	        else
         	        # Not Empty
-			if [ -z "$(ls "$MOUNT_DIR/$DEVICE/Recordings/.active")" ]; then
+			# Check if .active resides in Recordings/
+			if [ -f "$MOUNT_DIR/$DEVICE/Recordings/.active" ]; then
+				# Yes
 				echo "Device has already been setup previously, importing"
+				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE" || echo "Set permissions on $MOUNT_DIR/$DEVICE failed"
 			else
+				# No
                                 # Stop here or create a folder "Recordings" in the existing media root folder
 				# exit 1
 				# echo "It seems this drive contains data, please format as FAT32 and try again"
-	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && touch "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Recordings folder on the external drive exists, reusing it now"
+	                        mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" > "$MOUNT_DIR/$DEVICE/Recordings/.active" && echo "Recordings folder on the external drive exists, reusing it now"
+				chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && echo "Set permissions on $MOUNT_DIR/$DEVICE" || echo "Set permissions on $MOUNT_DIR/$DEVICE failed"
 			fi
 	        fi
 	fi
