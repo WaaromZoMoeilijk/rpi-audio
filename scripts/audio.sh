@@ -17,8 +17,8 @@ root_check
 
 ##################################### Stop all recordings just to be sure
 if [ -f /tmp/.recording.lock ]; then
-	ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT | wait
-	sleep 5
+	ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
+	sleep 3
 	rm /tmp/.recording.lock
 fi
 
