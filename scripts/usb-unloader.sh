@@ -11,7 +11,7 @@
 # use tail /var/log/syslog to look at latest events in log
 #
 ################################### Variables & functions
-source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh)
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) | wait
 
 ################################### Check for errors + debug code and abort if something isn't right
 debug_mode() {
@@ -43,27 +43,27 @@ autounload() {
 	echo ; echo -e "|" "${IBlue} --- USB UnLoader --- ${Color_Off} |" >&2 ; echo    
 
 	if [ -z "$MOUNT_DIR" ]; then
-	     echo ; echo -e "|" "${IRed}Failed to supply Mount Dir parameter${Color_Off} |" >&2
+	     echo -e "${IRed}Failed to supply Mount Dir parameter${Color_Off}" >&2
 	exit 1
 	fi
 
 	if [ -z "$DEVICE" ]; then
-	     echo ; echo -e "|" "${IRed}Failed to supply DEVICE parameter${Color_Off} |" >&2
+	     echo -e "${IRed}Failed to supply DEVICE parameter${Color_Off}" >&2
 	exit 1
 	fi
 
 	if [ -d /mnt/"$DEVICE" ]; then
-		echo ; echo -e "|" "${IRed}Directory /mnt/$DEVICE still exists, removing${Color_Off} |" >&2
+		echo -e "${IRed}Directory /mnt/$DEVICE still exists, removing${Color_Off}" >&2
 		echo
 		umount -l "/mnt/$DEVICE" | sleep 1
 		rmdir "/mnt/$DEVICE"
 		if [ $? -eq 0 ]; then
-			echo ; echo -e "|" "${IGreen}Removed directory /mnt/$DEVICE${Color_Off} |" >&2
+			echo -e "${IGreen}Removed directory /mnt/$DEVICE${Color_Off}" >&2
 		else
-			echo ; echo -e "|" "${IRed}Directory removal of /mnt/$DEVICE failed${Color_Off} |" >&2
+			echo -e "${IRed}Directory removal of /mnt/$DEVICE failed${Color_Off}" >&2
 		fi		
 	else
-		echo ; echo -e "|" "${IGreen}Directory /mnt/$DEVICE not present${Color_Off} |" >&2
+		echo -e "${IGreen}Directory /mnt/$DEVICE not present${Color_Off}" >&2
 	fi
 }
 
@@ -73,7 +73,8 @@ autounload >> "$LOG_FILE" 2>&1
 ################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
 	echo ; echo -e "|" "${IBlue} --- USB Auto end script --- ${Color_Off} |" >&2 ; echo
-	echo "No commands setup for the auto end script"
+	echo "No commands setup for the auto end script" 
+	echo "###########  END usb-unloader.sh  $(date)   ############"
 fi
 
 ################################### Cleanup & exit
