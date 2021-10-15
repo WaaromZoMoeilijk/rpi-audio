@@ -67,7 +67,7 @@ fi
 echo ; echo -e "|" "${IBlue}Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!${Color_Off}" >&2 ; echo 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
 if [ $? -eq 0 ]; then
-	    echo ; echo -e "${IGreen}USB Microphone detected! ${Color_Off} |"
+	    echo ; echo -e "${IGreen}USB Microphone detected! ${Color_Off}"
 else
         echo -e "${IRed}No USB Microphone detected! Please plug one in now, and restart! ${Color_Off}" >&2
         #LED/beep that mic is not detected
@@ -79,7 +79,7 @@ fi
 echo ; echo -e "|" "${IBlue}Set volume and unmute${Color_Off}" >&2 ; echo 
 amixer -q -c $CARD set Mic 80% unmute
 if [ $? -eq 0 ]; then
-	echo -e "${IGreen}Mic input volume set to 80% and is unmuted${Color_Off} |"
+	echo -e "${IGreen}Mic input volume set to 80% and is unmuted${Color_Off}"
 else
         echo -e "${IRed}Failed to set input volume${Color_Off}" >&2
         #exit 1
@@ -89,7 +89,7 @@ fi
 echo ; echo -e "|" "${IBlue}Test recording${Color_Off}" >&2 ; echo
 arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
 if [ $? -eq 0 ]; then
-        echo -e "${IGreen}Test recording is done! ${Color_Off} |"
+        echo -e "${IGreen}Test recording is done! ${Color_Off}"
 else
         echo -e "${IRed}Test recording failed! ${Color_Off}" >&2
         #exit 1
@@ -98,7 +98,7 @@ fi
 ##################################### Check recording file size
 echo ; echo -e "|" "${IBlue}Check if recording file size is not 0${Color_Off}" >&2 ; echo 
 if [ -s /tmp/test-mic.wav ]; then
-        echo -e "${IGreen}File contains data! ${Color_Off} |"
+        echo -e "${IGreen}File contains data! ${Color_Off}"
 else
         echo -e "${IRed}File is empty! Unable to record. ${Color_Off}" >&2
 	#exit 1
@@ -108,7 +108,7 @@ fi
 echo ; echo -e "|" "${IBlue}Testing playback of the recording${Color_Off}" >&2 ; echo
 aplay /tmp/test-mic.wav
 if [ $? -eq 0 ]; then
-	echo ; echo -e "${IGreen}Playback is ok! ${Color_Off} |"
+	echo ; echo -e "${IGreen}Playback is ok! ${Color_Off}"
 	rm -r /tmp/test-mic.wav
 else
 	echo ; echo -e "${IRed}Playback failed! ${Color_Off}" >&2
@@ -129,7 +129,13 @@ gpg1 	--homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --v
 	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
-tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
+tee "$MNTPT/$(date '+%Y-%m-%d_%H:%M:%S').wav.gpg" 
+#clear
+#if [ $? -eq 0 ]; then
+#	success "Recording is done"
+#else
+#	echo -e "${IRed}Something went wrong during the recording flow${Color_Off}" >&2
+#fi
 
 # Reverse Pipe
 #vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
@@ -141,19 +147,20 @@ tee "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg"
 # GPG additions
 #--passphrase-file file reads the passphrase from a file
 #--passphrase string uses string as the passphrase
-# You'll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
+# Youll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
 
 ###################################### Create par2 files
 # Implement a last modified file check for the latest recording only
-par2 create "$MNTPT/$(date +%Y-%m-%d_%H:%M:%S).wav.gpg.par2" "$MNTPT/$(date +%Y-%m-%d_%H)-*.wav.gpg"
+
+#par2 create "$MNTPT/(date '+%Y-%m-%d_%H:%M:%S').wav.gpg.par2" "$MNTPT/$NAMEDATE.wav.gpg" && success "Par2 file created"
 
 ###################################### Verify par2 files
-if [[ $(par2 verify "$MNTPT/$(date +%Y-%m-%d_%H)*.wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
-	echo ; echo -e "${IGreen}Par2 verified! ${Color_Off} |"
-else
-	echo ; echo -e "${IRed}Par2 verification failed! ${Color_Off}" >&2
-        #exit 1
-fi
+#if [[ $(par2 verify "$MNTPT/(date '+%Y-%m-%d_%H:%M:%S').wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
+#	echo ; echo -e "${IGreen}Par2 verified!${Color_Off}"
+#else
+#	echo ; echo -e "${IRed}Par2 verification failed!${Color_Off}" >&2
+#        #exit 1
+#fi
 
 ##################################### Backup recordings
 if [ -d "$LOCALSTORAGE" ]; then
@@ -163,12 +170,12 @@ else
 	chown -R "$USER":"$USER" "$LOCALSTORAGE"
 fi
 
-if [ "$LOCALSTORAGEUSED" -le 500 ]; then
-	echo ; echo -e "${IRed}Less then 500MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off}" >&2
+if [ "$LOCALSTORAGEUSED" -le 2000 ]; then
+        echo ; echo -e "${IRed}Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off}" >&2
 else
-	echo ; echo -e "${IGreen}More then then 500MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off}" >&2
-	rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
-fi	
+        echo ; echo -e "${IGreen}More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off}" >&2
+        rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
+fi      
 
 ##################################### Unmount device
 MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
