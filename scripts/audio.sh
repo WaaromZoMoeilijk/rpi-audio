@@ -187,13 +187,12 @@ fi
 
 ##################################### Unmount device
 MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
-sync
-sleep 3
-#################################################systemd-umount "$MNTPTR"
+sync ; sleep 3 ; echo 
+systemd-umount "$MNTPTR"
 if [ $? -eq 0 ]; then
-    success "Systemd-unmount done"
-    # Remove folder after unmount
-    sleep 2
+	success "Systemd-unmount done"
+	# Remove folder after unmount
+	sleep 2
 	rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
 else
 	error "Systemd-umount failed"
