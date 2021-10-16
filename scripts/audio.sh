@@ -51,6 +51,13 @@ else
 fi
 
 ##################################### Check free space
+header "Checking free space available on root." 
+if [ "$LOCALSTORAGEUSED" -le 2000 ]; then
+        echo ; error "Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+else
+        echo ; success "More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+fi      
+
 header "Checking free space available on storage." 
 if [ $USEP -ge '90' ]; then
 	error "Drive has less then 10% storage capacity available, please free up space."
@@ -120,13 +127,14 @@ fi
 #fi
 
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
+FILEDATE=$(date '+%Y-%m-%d_%H%M')
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
 gpg1 	--homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
-tee "$MNTPT/$(date '+%Y-%m-%d_%H:%M:%S').wav.gpg" 
+tee "$MNTPT/"$FILEDATE".wav.gpg" 
 #clear
 #if [ $? -eq 0 ]; then
 #	success "Recording is done"
@@ -153,15 +161,14 @@ tee "$MNTPT/$(date '+%Y-%m-%d_%H:%M:%S').wav.gpg"
 ###################################### Create par2 files
 # Implement a last modified file check for the latest recording only
 
-#par2 create "$MNTPT/(date '+%Y-%m-%d_%H:%M:%S').wav.gpg.par2" "$MNTPT/$NAMEDATE.wav.gpg" && success "Par2 file created"
+par2 create "$MNTPT/$FILEDATE.wav.gpg.par2" "$MNTPT/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
 
 ###################################### Verify par2 files
-#if [[ $(par2 verify "$MNTPT/(date '+%Y-%m-%d_%H:%M:%S').wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
-#	echo ; success "Par2 verified!"
-#else
-#	echo ; error "Par2 verification failed!"
-#        #exit 1
-#fi
+if [[ $(par2 verify "$MNTPT/$FILEDATE.wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
+	echo ; success "Par2 verified!"
+else
+	echo ; error "Par2 verification failed!"
+fi
 
 ##################################### Backup recordings
 if [ -d "$LOCALSTORAGE" ]; then
