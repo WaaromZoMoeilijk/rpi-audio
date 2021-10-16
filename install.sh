@@ -308,7 +308,7 @@ fi
 #/bin/bash "$GITDIR"/scripts/ph.sh
 
 ################################### 
-echo "$(date)" > /opt/.rpi-audio-install.sh-finished
+echo "Installed on$(date)" > /opt/.rpi-audio-install.sh-finished
 
 ################################### Audio recording
 echo ; echo -e "|" "${IBlue}Audio${Color_Off}" >&2 ; echo
