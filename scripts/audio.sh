@@ -128,30 +128,32 @@ fi
 
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 FILEDATE=$(date '+%Y-%m-%d_%H%M')
+mkdir -p "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Created $MNTPT/$(date '+%Y-%m-%d')"
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
 gpg1 	--homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 	--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
-tee "$MNTPT/"$FILEDATE".wav.gpg" 
-#clear
-#if [ $? -eq 0 ]; then
-#	success "Recording is done"
-#else
-#	error "Something went wrong during the recording flow"
-#fi
+tee "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
+clear
+sleep 3
+
+if [ -f "$MNTPT/$FILEDATE.wav.gpg" ]; then
+	success "Recording is done"
+else
+	error "Something went wrong during the recording flow"
+fi
+
+# Reverse Pipe
+vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/"$FILEDATE".wav.gpg" | \
+gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/"$FILEDATE".decrypted.wav"
+
+# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
+#pkill -2 'arecord'
 
 # Error finding card
 # ALSA lib pcm_hw.c:1829:(_snd_pcm_hw_open) Invalid value for card
-
-# Reverse Pipe
-#vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
-#gpg1 --decrypt > /root/recording.wav 
-
-# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
-#ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
-#pkill -2 'arecord'
 
 # GPG additions
 #--passphrase-file file reads the passphrase from a file
@@ -160,7 +162,6 @@ tee "$MNTPT/"$FILEDATE".wav.gpg"
 
 ###################################### Create par2 files
 # Implement a last modified file check for the latest recording only
-
 par2 create "$MNTPT/$FILEDATE.wav.gpg.par2" "$MNTPT/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
 
 ###################################### Verify par2 files
