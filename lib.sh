@@ -78,22 +78,22 @@ is_mounted() {
 }
 ################################### easy colored output
 success() {
-    success "$*" 
+    echo ; echo -e "${IGreen}$* ${Color_Off}" >&2 ; echo
 }
 
 warning() {
-    echo -e "${IYellow}$*" 
+    echo ; echo -e "${IYellow}$* ${Color_Off}" >&2 ; echo
 }
 
 error() {
-    error "$*" 
+    echo ; echo -e "${IRed}$* ${Color_Off}" >&2 ; echo
 }
 
 header() {
-	echo ; echo -e "${IBlue}$*" ; echo 
+	echo ; echo -e "${IBlue}$* ${Color_Off}" >&2 ; echo 
 }
 
-fatal() {
+fatal()
     error "$*" 
     exit 1
 }
