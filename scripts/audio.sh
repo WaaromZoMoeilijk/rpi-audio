@@ -27,7 +27,7 @@ if [ -f /tmp/.recording.lock ]; then
 fi
 
 ##################################### In progress flag
-echo "$DATE" > /tmp/.recording.lock
+echo $(date) > /tmp/.recording.lock
 
 ##################################### Check USB drives	
 # Implement a check for double drives.
