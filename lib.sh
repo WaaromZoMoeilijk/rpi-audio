@@ -93,9 +93,9 @@ header() {
 	echo ; echo -e "${IBlue} ${1} ${Color_Off}" >&2 ; echo 
 }
 
-fatal()
-    echo ; echo -e "${IRed} ${1} ${Color_Off}" >&2 ; echo
-    exit 1
+fatal() {
+	echo ; echo -e "${IRed} ${1} ${Color_Off}" >&2 ; echo
+	exit 1
 }
 ################################### Spinner during long commands
 spinner() {
