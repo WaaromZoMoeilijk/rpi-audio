@@ -78,23 +78,23 @@ is_mounted() {
 }
 ################################### easy colored output
 success() {
-    echo ; echo -e "${IGreen} ${1} ${Color_Off}" >&2 ; echo
+    echo ; echo -e "${IGreen} $* ${Color_Off}" >&2 ; echo
 }
 
 warning() {
-    echo ; echo -e "${IYellow} ${1} ${Color_Off}" >&2 ; echo
+    echo ; echo -e "${IYellow} $* ${Color_Off}" >&2 ; echo
 }
 
 error() {
-    echo ; echo -e "${IRed} ${1} ${Color_Off}" >&2 ; echo
+    echo ; echo -e "${IRed} $* ${Color_Off}" >&2 ; echo
 }
 
 header() {
-	echo ; echo -e "${IBlue} ${1} ${Color_Off}" >&2 ; echo 
+	echo ; echo -e "${IBlue} $* ${Color_Off}" >&2 ; echo 
 }
 
 fatal() {
-	echo ; echo -e "${IRed} ${1} ${Color_Off}" >&2 ; echo
+	echo ; echo -e "${IRed} $* ${Color_Off}" >&2 ; echo
 	exit 1
 }
 ################################### Spinner during long commands
