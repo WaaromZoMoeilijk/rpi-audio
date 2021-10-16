@@ -85,6 +85,10 @@ warning() {
     echo -e "${IYellow}$*${Color_Off}" >&2 
 }
 
+error() {
+    echo -e "${IRed}$*${Color_Off}" >&2 
+}
+
 header() {
 	echo ; echo -e "${IBlue}$*${Color_Off}" >&2 ; echo 
 }
