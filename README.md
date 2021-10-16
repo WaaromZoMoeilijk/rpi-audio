@@ -29,7 +29,7 @@
 - Let the installation run and reboot after install (SD card: X / SSD: less then 5 mins).
 - Once the device is rebooted and up, insert USB storage (formatted to FAT32/NTFS/EXT{2,3,4} and only 1 partition) and the recording will begin shortly.
 - You can now leave the USB storage connected during reboots and it will auto start recording on boot.
-- Stop the recording from cli: `ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT`
+- Stop the recording from cli: `pkill -2 'arecord'`
 
 #### Storage requirements
 - Preformat storage device with a single partition either FAT32/NTFS/EXT{2,3,4} 
