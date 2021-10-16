@@ -81,6 +81,14 @@ success() {
     echo -e "${IGreen}$*${Color_Off}" >&2 
 }
 
+warning() {
+    echo -e "${IYellow}$*${Color_Off}" >&2 
+}
+
+header() {
+	echo ; echo -e "${IBlue}$*${Color_Off}" >&2 ; echo 
+}
+
 fatal() {
     echo -e "${IRed}$*${Color_Off}" >&2 
     exit 1
