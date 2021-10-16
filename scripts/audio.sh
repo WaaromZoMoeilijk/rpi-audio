@@ -52,19 +52,18 @@ fi
 
 ##################################### Check free space
 header "Checking free space available on storage." 
-if [ $USEP -ge 90 ]; then
+if [ $USEP -ge '90' ]; then
 	error "Drive has less then 10% storage capacity available, please free up space."
 else
 	success "Drive has more then 10% capacity available, proceeding!"
 fi
 
-USEDM=$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')
-if [ "$USEM" -le 500 ]; then
-	echo ; error "Less then 500MB available on usb storage directory: $USEM MB (USB)"
-	exit 1
+if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le 2000 ]; then
+        echo  "Less then 2000MB available on usb storage directory: $USEM MB (USB)"
+        exit 1
 else
-	echo ; success "More then then 500MB available on usb storage directory: $USEMMB (USB)"
-fi	
+        echo  "More then then 2000MB available on usb storage directory: $USEMMB (USB)"
+fi
 
 ##################################### Check for USB Mic
 header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!" 
