@@ -16,9 +16,13 @@ debug_mode
 root_check
 
 ##################################### Stop all recordings just to be sure
+if pgrep 'arecord'; then
+	pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord"
+	#ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
+	sleep 2
+fi
+
 if [ -f /tmp/.recording.lock ]; then
-	ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
-	sleep 3
 	rm /tmp/.recording.lock
 fi
 
