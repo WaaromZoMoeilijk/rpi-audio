@@ -31,93 +31,87 @@ echo "$DATE" > /tmp/.recording.lock
 
 ##################################### Check USB drives	
 # Implement a check for double drives.
-echo ; echo -e "|" "${IBlue}Checking for USB drives.${Color_Off}" >&2 ; echo 
+header "Checking for USB drives." 
 if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
         MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
-        echo -e "${IGreen}Active drive has been found, proceeding!   ${Color_Off}" >&2
+        success "Active drive has been found, proceeding"
 else
-        echo -e "${IRed}No active drive has been found, please reinsert or format USB. ${Color_Off}" >&2
-        exit 1
+        fatal "No active drive has been found, please reinsert or format USB"
 fi
 
 ##################################### Check if storage is writable
-echo ; echo -e "|" "${IBlue}Checking if the storage is writable.${Color_Off}" >&2 ; echo 
+header "Checking if the storage is writable." 
 touch "$MNTPT"/.test
 if [ -f "$MNTPT/.test" ]; then
-	echo -e "${IGreen}Storage is writable! ${Color_Off}" >&2
+	success "Storage is writable!"
 	rm "$MNTPT"/.test
 else
-	echo -e "${IRed}Storage is not writable, exiting. ${Color_Off}" >&2
+	error "Storage is not writable, exiting."
 	exit 1
 fi
 
 ##################################### Check free space
-echo ; echo -e "|" "${IBlue}Checking free space available on storage.${Color_Off}" >&2 ; echo 
+header "Checking free space available on storage." 
 if [ $USEP -ge 90 ]; then
-	echo -e "${IRed}Drive has less then 10% storage capacity available, please free up space. ${Color_Off}" >&2
+	error "Drive has less then 10% storage capacity available, please free up space."
 else
-	echo -e "${IGreen}Drive has more then 10% capacity available, proceeding! ${Color_Off}" >&2
+	success "Drive has more then 10% capacity available, proceeding!"
 fi
 
 USEDM=$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')
 if [ "$USEM" -le 500 ]; then
-	echo ; echo -e "${IRed}Less then 500MB available on usb storage directory: $USEM MB (USB)${Color_Off}" >&2
+	echo ; error "Less then 500MB available on usb storage directory: $USEM MB (USB)"
 	exit 1
 else
-	echo ; echo -e "${IGreen}More then then 500MB available on usb storage directory: $USEMMB (USB)${Color_Off}" >&2
+	echo ; success "More then then 500MB available on usb storage directory: $USEMMB (USB)"
 fi	
 
 ##################################### Check for USB Mic
-echo ; echo -e "|" "${IBlue}Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!${Color_Off}" >&2 ; echo 
+header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected!" 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
 if [ $? -eq 0 ]; then
-	    echo ; echo -e "${IGreen}USB Microphone detected! ${Color_Off}"
+	    echo ; success "USB Microphone detected!"
 else
-        echo -e "${IRed}No USB Microphone detected! Please plug one in now, and restart! ${Color_Off}" >&2
+        fatal "No USB Microphone detected! Please plug one in now, and restart!"
         #LED/beep that mic is not detected
 	    # sleep 10 && reboot
-        exit 1
 fi
 
 ##################################### Set volume and unmute
-echo ; echo -e "|" "${IBlue}Set volume and unmute${Color_Off}" >&2 ; echo 
+header "Set volume and unmute" 
 amixer -q -c $CARD set Mic 80% unmute
 if [ $? -eq 0 ]; then
-	echo -e "${IGreen}Mic input volume set to 80% and is unmuted${Color_Off}"
+		success "Mic input volume set to 80% and is unmuted"
 else
-        echo -e "${IRed}Failed to set input volume${Color_Off}" >&2
-        #exit 1
+        fatal "Failed to set input volume"
 fi
 
 ##################################### Test recording
-echo ; echo -e "|" "${IBlue}Test recording${Color_Off}" >&2 ; echo
+header "Test recording"
 arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
 if [ $? -eq 0 ]; then
-        echo -e "${IGreen}Test recording is done! ${Color_Off}"
+        success "Test recording is done!"
 else
-        echo -e "${IRed}Test recording failed! ${Color_Off}" >&2
-        #exit 1
+        fatal "Test recording failed!"
 fi
 
 ##################################### Check recording file size
-echo ; echo -e "|" "${IBlue}Check if recording file size is not 0${Color_Off}" >&2 ; echo 
+header "Check if recording file size is not 0" 
 if [ -s /tmp/test-mic.wav ]; then
-        echo -e "${IGreen}File contains data! ${Color_Off}"
+        success "File contains data!"
 else
-        echo -e "${IRed}File is empty! Unable to record. ${Color_Off}" >&2
-	#exit 1
+        error "File is empty! Unable to record."
 fi
 
 ##################################### Test playback
-echo ; echo -e "|" "${IBlue}Testing playback of the recording${Color_Off}" >&2 ; echo
+header "Testing playback of the recording"
 aplay /tmp/test-mic.wav
 if [ $? -eq 0 ]; then
-	echo ; echo -e "${IGreen}Playback is ok! ${Color_Off}"
+	echo ; success "Playback is ok!"
 	rm -r /tmp/test-mic.wav
 else
-	echo ; echo -e "${IRed}Playback failed! ${Color_Off}" >&2
+	echo ; error "Playback failed!"
 	rm -r /tmp/test-mic.wav
-        #exit 1
 fi
 
 ##################################### Check for double channel
@@ -138,8 +132,11 @@ tee "$MNTPT/$(date '+%Y-%m-%d_%H:%M:%S').wav.gpg"
 #if [ $? -eq 0 ]; then
 #	success "Recording is done"
 #else
-#	echo -e "${IRed}Something went wrong during the recording flow${Color_Off}" >&2
+#	error "Something went wrong during the recording flow"
 #fi
+
+# Error finding card
+# ALSA lib pcm_hw.c:1829:(_snd_pcm_hw_open) Invalid value for card
 
 # Reverse Pipe
 #vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 /root/recording.wav.gpg | \
@@ -147,6 +144,7 @@ tee "$MNTPT/$(date '+%Y-%m-%d_%H:%M:%S').wav.gpg"
 
 # SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
 #ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT
+#pkill -2 'arecord'
 
 # GPG additions
 #--passphrase-file file reads the passphrase from a file
@@ -160,9 +158,9 @@ tee "$MNTPT/$(date '+%Y-%m-%d_%H:%M:%S').wav.gpg"
 
 ###################################### Verify par2 files
 #if [[ $(par2 verify "$MNTPT/(date '+%Y-%m-%d_%H:%M:%S').wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
-#	echo ; echo -e "${IGreen}Par2 verified!${Color_Off}"
+#	echo ; success "Par2 verified!"
 #else
-#	echo ; echo -e "${IRed}Par2 verification failed!${Color_Off}" >&2
+#	echo ; error "Par2 verification failed!"
 #        #exit 1
 #fi
 
@@ -175,9 +173,9 @@ else
 fi
 
 if [ "$LOCALSTORAGEUSED" -le 2000 ]; then
-        echo ; echo -e "${IRed}Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off}" >&2
+        echo ; error "Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 else
-        echo ; echo -e "${IGreen}More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)${Color_Off}" >&2
+        echo ; success "More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
         rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
 fi      
 
@@ -185,33 +183,34 @@ fi
 MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
 sync
 sleep 3
-echo ; systemd-umount "$MNTPTR"
+#################################################echo ; systemd-umount "$MNTPTR"
 if [ $? -eq 0 ]; then
-    echo ; echo -e "${IGreen}Systemd-unmount done${Color_Off}" >&2
+    echo ; success "Systemd-unmount done"
     # Remove folder after unmount
     sleep 2
-	rmdir "$MNTPTR" &&  echo ; echo -e "${IGreen}$MNTPTR folder removed${Color_Off}" >&2 || echo ; echo -e "${IRed}$MNTPTR folder remove failed${Color_Off}" >&2
+	#######################################################rmdir "$MNTPTR" &&  echo ; success "$MNTPTR folder removed" || echo ; error "$MNTPTR folder remove failed"
 else
-    echo ; echo -e "${IRed}Systemd-umount failed${Color_Off}" >&2
-    echo ; umount -l "$MNTPTR" && echo -e "${IGreen}umount done${Color_Off}" >&2 || echo ; echo -e "${IGreen}Umount - Not mounted double check, done${Color_Off}" >&2
-    #echo ; systemctl disable "$MOUNT_DIR-$DEVICE".mount && echo -e "${IGreen}Systemctl disabled $MOUNT_DIR-$DEVICE.mount done${Color_Off}" >&2 || echo ; echo -e "${IRed}Systemctl disabled $MOUNT_DIR-$DEVICE.mount failed${Color_Off}" >&2
-    #echo ; systemctl daemon-reload && echo -e "${IGreen}Systemctl daemon-reload done${Color_Off}" >&2 || echo ; echo -e "${IRed}Systemctl daemon-reload failed${Color_Off}" >&2
-    #echo ; systemctl reset-failed && echo -e "${IGreen}Systemctl reset-failed done${Color_Off}" >&2 || echo ; echo -e "${IRed}Systemctl reset-failed failed${Color_Off}" >&2
-    # Remove folder after unmount
-    sleep 2
-	rmdir "$MNTPTR" &&  echo ; echo -e "${IGreen}$MNTPTR folder removed${Color_Off}" >&2 || echo ; echo -e "${IRed}$MNTPTR folder remove failed${Color_Off}" >&2
+	echo ; error "Systemd-umount failed"
+	#####################################################echo ; umount -l "$MNTPTR" && success "umount done" || echo ; success "Umount - Not mounted double check, done"
+	#echo ; systemctl disable "$MOUNT_DIR-$DEVICE".mount && success "Systemctl disabled $MOUNT_DIR-$DEVICE.mount done" || echo ; error "Systemctl disabled $MOUNT_DIR-$DEVICE.mount failed"
+	#echo ; systemctl daemon-reload && success "Systemctl daemon-reload done" || echo ; error "Systemctl daemon-reload failed"
+	#echo ; systemctl reset-failed && success "Systemctl reset-failed done" || echo ; error "Systemctl reset-failed failed"
+	# Remove folder after unmount
+	sleep 2
+	####################################################rmdir "$MNTPTR" &&  echo ; success "$MNTPTR folder removed" || echo ; error "$MNTPTR folder remove failed"
 fi	
 
 # test that this device has disappeared from mounted devices
 device_mounted=$(grep -q "$DEV" /etc/mtab)
 if [ "$device_mounted" ]; then
-	echo ; echo -e "${IRed}Failed to Un-Mount, forcing umount -l${Color_Off}" >&2
-	umount -l "/dev/$DEVICE"
+	echo ; error "Failed to Un-Mount, forcing umount -l"
+	echo "temp disable of unmount for dev"
+	#############################################################umount -l "/dev/$DEVICE"
 	if [ $? -eq 0 ]; then
-		rmdir "$MNTPTR" &&  echo ; echo -e "${IGreen}$MNTPTR folder removed${Color_Off}" >&2 || echo ; echo -e "${IRed}$MNTPTR folder remove failed${Color_Off}" >&2
+		rmdir "$MNTPTR" &&  echo ; success "$MNTPTR folder removed" || echo ; error "$MNTPTR folder remove failed"
 	fi
 else
-	echo ; echo -e "${IGreen}Device not present in /etc/mtab${Color_Off}" >&2
+	echo ; success "Device not present in /etc/mtab"
 fi
 
 ##################################### In progress flag
