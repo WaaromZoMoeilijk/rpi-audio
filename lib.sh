@@ -34,6 +34,7 @@ REPO="https://github.com/WaaromZoMoeilijk/rpi-audio"
 REBOOT="sleep 40 && reboot"
 DATE=$(date '+%Y-%m-%d - %H:%M:%S')
 NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
+FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
 ################################### Storage
 SCRIPT_DIR="$GITDIR/scripts"
 LOG_DIR="/var/log"
@@ -122,7 +123,7 @@ fi
 }
 ################################### Define parameters for auto-start program
 automount() {
-    echo ; echo "--- USB Auto Mount --- $DATE" ; echo
+    echo ; echo -e "|" "${IBlue}USB Auto Mount$DATE${Color_Off}" >&2; echo
 
     # Allow time for device to be added
     sleep 2
@@ -159,7 +160,7 @@ automount() {
 
 #################################### Auto Start Function
 autostart() {
-	echo ; echo "--- USB Auto Start Program --- $DATE" ; echo
+	echo ; echo -e "|" "${IBlue}USB Auto Start Program${Color_Off}" >&2; echo
 	DEV=$(echo "$DEVICE" | cut -c -3)
 	# Check # of partitions
         if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
@@ -215,6 +216,7 @@ autostart() {
                 fi
         fi
         # Start audio recording
+	echo ; echo -e "|" "${IBlue}Start recording${Color_Off}" >&2 
         echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
         "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
