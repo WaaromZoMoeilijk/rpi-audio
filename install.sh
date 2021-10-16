@@ -193,14 +193,6 @@ if [ -d "$GITDIR" ]; then
 	else
 		error "Git repository update failed"
 	fi
-
-	git clone "$REPO" "$GITDIR"
-	chmod +x "$GITDIR"/scripts/*.sh
-	if [ $? -eq 0 ]; then
-		success "Git repository cloned"
-	else
-		error "Git repository failed to clone"
-	fi
 else
 	git clone "$REPO" "$GITDIR"
 	chmod +x "$GITDIR"/scripts/*.sh
