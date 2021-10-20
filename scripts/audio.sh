@@ -86,7 +86,7 @@ fi
 header "Set volume and unmute" 
 amixer -q -c $CARD set Mic 80% unmute
 if [ $? -eq 0 ]; then
-	success "Mic input volume set to 80% and is unmuted"
+    success "Mic input volume set to 80% and is unmuted"
 else
     fatal "Failed to set input volume"
 fi
@@ -127,7 +127,7 @@ fi
 
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 FILEDATE=$(date '+%Y-%m-%d_%H%M')
-mkdir -p "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Created $MNTPT/$(date '+%Y-%m-%d')"
+mkdir -p "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
 arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
 gpg1 	--homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
@@ -168,6 +168,20 @@ if [[ $(par2 verify "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | grep "
 	success "Par2 verified"
 else
 	error "Par2 verification failed"
+fi
+
+##################################### Check free space after recording
+header "Checking free space available on storage after recording." 
+if [ $USEP -ge '90' ]; then
+	error "Drive has less then 10% storage capacity available, please free up space."
+else
+	success "Drive has more then 10% capacity available, proceeding"
+fi
+
+if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le 2000 ]; then
+    error "Less then 2000MB available on usb storage directory: $USEM MB (USB)"
+else
+    success "More then then 2000MB available on usb storage directory: $USEMMB (USB)"
 fi
 
 ##################################### Backup recordings
