@@ -4,10 +4,10 @@
 
 #### To do
 - [ ] Encryption keys mechanism
-- [ ] UPS
-- [ ] LTE
+- [ ] UPS [8](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/8)
+- [ ] LTE [7](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/7) [14](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/14)
 - [ ] Dual channel
-- [ ] Audio parameters
+- [ ] Audio parameters [4](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/4) [5](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/5)
 
 #### Flash base image to SSD / SDCard
 - [Download](https://www.balena.io/etcher/) and install Balena Etcher.
