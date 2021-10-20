@@ -2,7 +2,6 @@
 ################################### Folders
 CONFIG="/boot/config.txt"
 GITDIR="/opt/rpi-audio"
-HOME="/home/admin"
 LOCALSTORAGE="/Recordings"
 SCRIPT_DIR="$GITDIR/scripts"
 LOG_DIR="/var/log"
@@ -64,7 +63,7 @@ is_root() {
 root_check() {
 if ! is_root
 then
-    msg_box "Failed, script needs sudo permission"
+    fatal "Failed, script needs sudo permissions for now"
     exit 1
 fi
 }
