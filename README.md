@@ -1,6 +1,7 @@
 # rpi-audio
 ### Turnkey headless Raspberry Pi audio recorder with networking and UPS extensions 
-#### Recording flow: audio-out | opusenc | gpg1 | vdmfec | tee + par2
+#### Recording flow current: (powerup/usb insert) && audio-out | opusenc | gpg1 | vdmfec | tee + par2 ; wait for SIGINT && backup to local && umount  
+#### Recording flow planned: (powerup/usb insert) && audio-out | opusenc | gpg1 | vdmfec | tee + par2 ; wait for UPS unplug && backup to local && umount && shutdown
 
 #### To do
 - [ ] Encryption keys mechanism
