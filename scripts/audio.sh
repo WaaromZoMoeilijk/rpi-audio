@@ -33,10 +33,10 @@ echo $(date) > /tmp/.recording.lock
 # Implement a check for double drives.
 header "Checking for USB drives." 
 if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
-    MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
-    success "Active drive has been found, proceeding"
+	MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
+	success "Active drive has been found, proceeding"
 else
-    fatal "No active drive has been found, please reinsert or format USB"
+	fatal "No active drive has been found, please reinsert or format USB"
 fi
 
 ##################################### Check if storage is writable
@@ -53,9 +53,9 @@ fi
 ##################################### Check free space
 header "Checking free space available on root." 
 if [ "$LOCALSTORAGEUSED" -le 2000 ]; then
-    error "Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+	error "Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 else
-    success "More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+	success "More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 fi      
 
 header "Checking free space available on storage." 
@@ -66,9 +66,9 @@ else
 fi
 
 if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le 2000 ]; then
-    fatal "Less then 2000MB available on usb storage directory: $USEM MB (USB)"
+	fatal "Less then 2000MB available on usb storage directory: $USEM MB (USB)"
 else
-    success "More then then 2000MB available on usb storage directory: $USEMMB (USB)"
+	success "More then then 2000MB available on usb storage directory: $USEMMB (USB)"
 fi
 
 ##################################### Check for USB Mic
@@ -77,8 +77,8 @@ arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microph
 if [ $? -eq 0 ]; then
 	success "USB Microphone detected"
 else
-    fatal "No USB Microphone detected! Please plug one in now, and restart"
-    #LED/beep that mic is not detected
+	fatal "No USB Microphone detected! Please plug one in now, and restart"
+	#LED/beep that mic is not detected
 	# sleep 10 && reboot
 fi
 
@@ -86,26 +86,26 @@ fi
 header "Set volume and unmute" 
 amixer -q -c $CARD set Mic 80% unmute
 if [ $? -eq 0 ]; then
-    success "Mic input volume set to 80% and is unmuted"
+	success "Mic input volume set to 80% and is unmuted"
 else
-    fatal "Failed to set input volume"
+	fatal "Failed to set input volume"
 fi
 
 ##################################### Test recording
 header "Test recording"
 arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
 if [ $? -eq 0 ]; then
-    success "Test recording is done"
+	success "Test recording is done"
 else
-    fatal "Test recording failed"
+	fatal "Test recording failed"
 fi
 
 ##################################### Check recording file size
 header "Check if recording file size is not 0" 
 if [ -s /tmp/test-mic.wav ]; then
-    success "File contains data"
+	success "File contains data"
 else
-    error "File is empty! Unable to record."
+	error "File is empty! Unable to record."
 fi
 
 ##################################### Test playback
