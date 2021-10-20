@@ -4,6 +4,12 @@ CONFIG="/boot/config.txt"
 GITDIR="/opt/rpi-audio"
 HOME="/home/admin"
 LOCALSTORAGE="/Recordings"
+SCRIPT_DIR="$GITDIR/scripts"
+LOG_DIR="/var/log"
+LOG_FILE="$LOG_DIR/audio-usb-automount.log"
+LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
+LOG_FILE_INSTALL="$LOG_DIR/audio-install.log"
+MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 ################################### System
 USER="dietpi"
 USERNAME="dietpi"
@@ -31,21 +37,13 @@ ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 ISSUES="https://github.com/WaaromZoMoeilijk/rpi-audio/issues"
 REPO="https://github.com/WaaromZoMoeilijk/rpi-audio" 
 ################################### Misc
-REBOOT="sleep 40 && reboot"
 DATE=$(date '+%Y-%m-%d - %H:%M:%S')
 NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
-SCRIPT_DIR="$GITDIR/scripts"
-LOG_DIR="/var/log"
-LOG_FILE="$LOG_DIR/audio-usb-automount.log"
-LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
-LOG_FILE_INSTALL="$LOG_DIR/audio-install.log"
-MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
-# Optional parameter to:
-#   - auto start a program on ADD
-#   - auto end program on REMOVE
+line_count=$(echo -n "$OUTPUT" | grep -c '^')
+OUTPUT=$(find /mnt -iname '.active' | sed 's|/.active||g') # $1 Process Id
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 ################################### Audio
 CARD=$(arecord -l | grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | awk '{print $2}' | sed 's|:||g')
