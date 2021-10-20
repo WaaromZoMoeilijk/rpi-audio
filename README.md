@@ -1,5 +1,13 @@
 # rpi-audio
 ### Turnkey headless Raspberry Pi audio recorder with networking and UPS extensions 
+#### Recording flow: audio-out | opusenc | gpg1 | vdmfec | tee + par2
+
+#### To do
+- [ ] Encryption keys mechanism
+- [ ] UPS
+- [ ] LTE
+- [ ] Dual channel
+- [ ] Audio parameters
 
 #### Flash base image to SSD / SDCard
 - [Download](https://www.balena.io/etcher/) and install Balena Etcher.
@@ -29,6 +37,7 @@
 - Let the installation run and reboot after install (SD card: X / SSD: less then 5 mins).
 - Once the device is rebooted and up, insert USB storage (formatted to FAT32/NTFS/EXT{2,3,4} and only 1 partition) and the recording will begin shortly.
 - You can now leave the USB storage connected during reboots and it will auto start recording on boot.
+- Also unplugging and repluggin the USB storage will initiate recording (New devices and already adopted storage both)
 - Stop the recording from cli: `pkill -2 'arecord'`
 
 #### Storage requirements
