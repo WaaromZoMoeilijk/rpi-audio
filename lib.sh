@@ -42,6 +42,8 @@ NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
+MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
+MAXPCT='90' # Max used % of / or USB storage in order to proceed
 mic_count=$(echo -n "$OUTPUTMIC" | grep -c '^')
 usb_count=$(echo -n "$OUTPUTUSB" | grep -c '^')
 OUTPUTMIC=$(arecord --list-devices | grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC') # $1 Process Id
