@@ -42,8 +42,10 @@ NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
-line_count=$(echo -n "$OUTPUT" | grep -c '^')
-OUTPUT=$(find /mnt -iname '.active' | sed 's|/.active||g') # $1 Process Id
+mic_count=$(echo -n "$OUTPUTMIC" | grep -c '^')
+usb_count=$(echo -n "$OUTPUTUSB" | grep -c '^')
+OUTPUTMIC=$(arecord --list-devices | grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC') # $1 Process Id
+OUTPUTUSB=$(find /mnt -iname '.active' | sed 's|/.active||g') # $1 Process Id
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 ################################### Audio
 CARD=$(arecord -l | grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | awk '{print $2}' | sed 's|:||g')
