@@ -172,7 +172,7 @@ fi
 ################################### Create user
 header "Creating user"
 if cat /etc/passwd | grep "$USERNAME"; then
-	echo ; warning "User exists"
+	warning "User exists"
 else
 	/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME" && success "User added" || error "User add failed"
 fi
@@ -181,11 +181,11 @@ fi
 header "Clone git repo"
 if [ -d "$GITDIR" ]; then
 	#rm -r "$GITDIR"
-	cd "$GITDIR"
+	cd "$GITDIR" && success "Change dir to Git dir"  || error "Changing to Git dir failed"
 	git pull && success "Git repository updated"  || error "Git repository update failed"
 else
-	git clone "$REPO" "$GITDIR"
-	chmod +x "$GITDIR"/scripts/*.sh && success "Git repository cloned" || error "Git repository failed to clone"
+	git clone "$REPO" "$GITDIR" && success "Git repository cloned" || error "Git repository failed to clone"
+	chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 fi
 
 ################################### Hardening
@@ -284,6 +284,7 @@ fi
 ################################### Audio recording
 header "Start recording" 
 echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
+chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 
 #exit 0
