@@ -121,17 +121,17 @@ apt-get install -y -qq \
         ufw \
         rsyslog \
         fail2ban \
-		dbus \
-		lshw \
-		ufw \
-		rsync \
-		par2 \
-		gnupg1	
-		if [ $? -eq 0 ]; then
-			echo ; success "Packages install done"
-		else
-			echo ; error "Packages install failed"
-		fi	
+	dbus \
+	lshw \
+	ufw \
+	rsync \
+	par2 \
+	gnupg1	
+	if [ $? -eq 0 ]; then
+		echo ; success "Packages install done"
+	else
+		echo ; error "Packages install failed"
+	fi	
 
 ################################### VDMFEC
 #header "VMDFEC"
@@ -174,12 +174,7 @@ header "Creating user"
 if cat /etc/passwd | grep "$USERNAME"; then
 	echo ; warning "User exists"
 else
-	/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME"
-	if [ $? -eq 0 ]; then
-		success "User added"
-	else
-		error "User add failed"
-	fi
+	/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME" && success "User added" || error "User add failed"
 fi
 
 ################################### Clone git repo
@@ -187,42 +182,22 @@ header "Clone git repo"
 if [ -d "$GITDIR" ]; then
 	#rm -r "$GITDIR"
 	cd "$GITDIR"
-	git pull
-	if [ $? -eq 0 ]; then
-		warning "Git repository updated" 
-	else
-		error "Git repository update failed"
-	fi
+	git pull && success "Git repository updated"  || error "Git repository update failed"
 else
 	git clone "$REPO" "$GITDIR"
-	chmod +x "$GITDIR"/scripts/*.sh
-	if [ $? -eq 0 ]; then
-		success "Git repository cloned"
-	else
-		error "Git repository failed to clone"
-	fi
+	chmod +x "$GITDIR"/scripts/*.sh && success "Git repository cloned" || error "Git repository failed to clone"
 fi
 
 ################################### Hardening
 header "Hardening"
-/bin/bash "$GITDIR"/scripts/hardening.sh
-if [ $? -eq 0 ]; then
-	echo ; success "Hardening executed"
-else
-	echo ; error "Hardening failed"
-fi
+/bin/bash "$GITDIR"/scripts/hardening.sh && success "Hardening executed" || error "Hardening failed"
 
 ################################### Dynamic overclock
 # Please at minimum add some heat sinks to the RPI. Better to also add a FAN. thermal throtteling is in place at 75 celcius 
 # Overclocking dynamically will only affect the temp on high load for longer periods. You can mitigate that with above.
 header "Overclock"
 if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
-	/bin/bash "$GITDIR"/scripts/overclock.sh
-	if [ $? -eq 0 ]; then
-		success "Overclock set, active on next reboot. Press shift during boot to disable"
-	else
-		error "Overclock set failed"
-	fi
+	/bin/bash "$GITDIR"/scripts/overclock.sh && success "Overclock set, active on next reboot. Press shift during boot to disable" || error "Overclock set failed"
 fi
 
 ################################### GPG
@@ -289,19 +264,23 @@ fi
 
 ################################### UPS
 #header "UPS"
-#/bin/bash "$GITDIR"/scripts/ups.sh
+#/bin/bash "$GITDIR"/scripts/ups.sh && success "UPS scripts executed" || error "UPS scripts failed"
 
 ################################### ZeroTier
 #header "Zerotier/networking"
-#/bin/bash "$GITDIR"/scripts/zerotier.sh
+#/bin/bash "$GITDIR"/scripts/zerotier.sh && success "Zerotier setup executed" || error "Zerotier setup failed"
 
 ################################### LED / Buttons
 #header "LED/buttons"
-#/bin/bash "$GITDIR"/scripts/ph.sh
+#/bin/bash "$GITDIR"/scripts/ph.sh && success "LED / button script executed" || error "LED / button script execution failed"
 
 ################################### 
-echo "Install script finished on: $(date)" >> /opt/.rpi-audio-install.sh-finished
-
+if [ -f /opt/.rpi-audio-install.sh-finished ]; then
+	echo "Install script finished on: $(date)" >> /opt/.rpi-audio-install.sh-finished
+else
+	echo "Install script finished on: $(date)" >> /opt/.rpi-audio-install.sh-finished
+	reboot
+fi
 ################################### Audio recording
 header "Audio"
 echo -e "|" "${IBlue}Audio recording${Color_Off} |" > "$LOG_FILE_AUDIO"
