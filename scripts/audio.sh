@@ -215,7 +215,7 @@ else
 	success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
 fi
 
-##################################### Backup recordings
+##################################### Backup recordings ///// make this split
 if [ -d "$LOCALSTORAGE" ]; then
 	chown -R "$USER":"$USER" "$LOCALSTORAGE"
 else
@@ -229,6 +229,11 @@ else
         success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
         rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
 fi      
+
+##################################### Sync logs to USB
+mkdir -p "$MNTPT"/Logs
+rsync -aAX /var/tmp/dietpi/logs/ "$MNTPT"/Logs/ && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+rsync -aAX /var/log/{audio-recording.log,audio-install.log,usb-automount.log} "$MNTPT"/Logs/ && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
 
 ##################################### Unmount device
 MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
