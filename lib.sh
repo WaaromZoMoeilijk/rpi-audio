@@ -35,6 +35,7 @@ REBOOT="sleep 40 && reboot"
 DATE=$(date '+%Y-%m-%d - %H:%M:%S')
 NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
+UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
 SCRIPT_DIR="$GITDIR/scripts"
 LOG_DIR="/var/log"
