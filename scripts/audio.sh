@@ -30,7 +30,7 @@ fi
 echo $(date) > /tmp/.recording.lock
 
 ##################################### Check USB drives	
-# Implement a check for double drives.
+mountvar() {
 header "Checking for USB drives." 
 if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
 	MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
@@ -38,6 +38,21 @@ if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
 else
 	fatal "No active drive has been found, please reinsert or format USB"
 fi
+}
+
+# check for double drives.
+# checks lines count and invokes needed script or exit.
+# if 0 lines - exit
+# if 1 lines - continue
+# if any other number of lines - exit
+case $usb_count in  
+    0) fatal "No active drive has been found, please reinsert or format USB"
+    ;;  
+    1) mountvar
+    ;;  
+    *) fatal "More then 1 USB storage device found, this is not supported yet"
+    ;;  
+esac
 
 ##################################### Check if storage is writable
 header "Checking if the storage is writable." 
@@ -52,35 +67,51 @@ fi
 
 ##################################### Check free space
 header "Checking free space available on root." 
-if [ "$LOCALSTORAGEUSED" -le 2000 ]; then
-	error "Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
+	error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 else
-	success "More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+	success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 fi      
 
 header "Checking free space available on storage." 
-if [ $USEP -ge '90' ]; then
+if [ $USEP -ge "$MAXPCT" ]; then
 	error "Drive has less then 10% storage capacity available, please free up space."
 else
 	success "Drive has more then 10% capacity available, proceeding"
 fi
 
-if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le 2000 ]; then
-	fatal "Less then 2000MB available on usb storage directory: $USEM MB (USB)"
+if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
+	fatal "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
 else
-	success "More then then 2000MB available on usb storage directory: $USEMMB (USB)"
+	success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
 fi
 
 ##################################### Check for USB Mic
+micvar() {
 header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected" 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
 if [ $? -eq 0 ]; then
 	success "USB Microphone detected"
 else
-	fatal "No USB Microphone detected! Please plug one in now, and restart"
+	fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB"
 	#LED/beep that mic is not detected
 	# sleep 10 && reboot
 fi
+}
+
+# check for amount of MICs
+# checks lines count and invokes needed script or exit.
+# if 0 lines - exit
+# if 1 lines - continue
+# if any other number of lines - exit
+case $mic_count in  
+    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB"
+    ;;  
+    1) micvar
+    ;;  
+    *) fatal "More then 1 USB Mic found"
+    ;;  
+esac
 
 ##################################### Set volume and unmute
 header "Set volume and unmute" 
@@ -172,16 +203,16 @@ fi
 
 ##################################### Check free space after recording
 header "Checking free space available on storage after recording." 
-if [ $USEP -ge '90' ]; then
+if [ $USEP -ge "$MAXPCT" ]; then
 	error "Drive has less then 10% storage capacity available, please free up space."
 else
 	success "Drive has more then 10% capacity available, proceeding"
 fi
 
-if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le 2000 ]; then
-    error "Less then 2000MB available on usb storage directory: $USEM MB (USB)"
+if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
+	error "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
 else
-    success "More then then 2000MB available on usb storage directory: $USEMMB (USB)"
+	success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
 fi
 
 ##################################### Backup recordings
@@ -192,10 +223,10 @@ else
 	chown -R "$USER":"$USER" "$LOCALSTORAGE"
 fi
 
-if [ "$LOCALSTORAGEUSED" -le 2000 ]; then
-        error "Less then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
+        error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 else
-        success "More then 2000MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+        success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
         rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
 fi      
 
