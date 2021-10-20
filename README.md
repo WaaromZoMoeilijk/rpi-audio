@@ -4,9 +4,9 @@
 #### Recording flow planned: (powerup/usb insert) && audio-out | opusenc | gpg1 | vdmfec | tee + par2 ; wait for UPS unplug && backup to local && umount && shutdown
 
 #### To do
-- [ ] Encryption keys mechanism
-- [ ] UPS [8](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/8)
 - [ ] LTE [7](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/7) [14](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/14)
+- [ ] UPS [8](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/8)
+- [ ] Encryption keys mechanism
 - [ ] Dual channel
 - [ ] Audio parameters [4](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/4) [5](https://github.com/WaaromZoMoeilijk/rpi-audio/issues/5)
 
