@@ -282,8 +282,8 @@ else
 	reboot
 fi
 ################################### Audio recording
-header "Audio"
-echo -e "|" "${IBlue}Audio recording${Color_Off} |" > "$LOG_FILE_AUDIO"
-/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1&
+header "Start recording" 
+echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
+"$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 
 #exit 0
