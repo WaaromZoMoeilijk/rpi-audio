@@ -352,23 +352,23 @@ gpg_keys() {
 		#GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 		gpg1 --homedir /root/.gnupg --list-keys
 
-	cat >keydetails <<EOF
-	    %echo Generating a basic OpenPGP key
-	    Key-Type: RSA
-	    Key-Length: 4096
-	    Subkey-Type: RSA
-	    Subkey-Length: 4096
-	    Name-Real: Recorder
-	    Name-Comment: Recorder
-	    Name-Email: "${GPG_RECIPIENT}"
-	    Expire-Date: 0
-	    %no-ask-passphrase
-	    %no-protection
-	    #%pubring pubring.kbx
-	    #%secring trustdb.gpg
-	    %commit
-	    %echo done
-	EOF
+cat >keydetails <<EOF
+    %echo Generating a basic OpenPGP key
+    Key-Type: RSA
+    Key-Length: 4096
+    Subkey-Type: RSA
+    Subkey-Length: 4096
+    Name-Real: Recorder
+    Name-Comment: Recorder
+    Name-Email: "${GPG_RECIPIENT}"
+    Expire-Date: 0
+    %no-ask-passphrase
+    %no-protection
+    #%pubring pubring.kbx
+    #%secring trustdb.gpg
+    %commit
+    %echo done
+EOF
 
 		gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
 
@@ -764,7 +764,7 @@ overclock_rpi() {
 	sed -i '/sdram_freq/d' "$CONFIG"
 	sed -i '/-------Overclock-------/d' "$CONFIG"
 
-	# Dynamic overclock config
+# Dynamic overclock config
 cat >> "$CONFIG" <<EOF
 #-------Overclock-------
 arm_freq=2000
