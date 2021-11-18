@@ -1,4 +1,11 @@
 #!/bin/bash
+# Index
+# Section a: variables
+# 	  b: install.sh
+#	  c: audio.sh 
+#	  d: hardening.sh
+#	  e: overclock.sh
+#
 ################################### Folders
 CONFIG="/boot/config.txt"
 GITDIR="/opt/rpi-audio"
@@ -72,10 +79,6 @@ if [ "$DEBUG" -eq 1 ]; then
 	set -ex
 fi
 }
-###################################
-is_mounted() {
-	grep -q "$1" /etc/mtab
-}
 ################################### easy colored output
 success() {
 	echo -e "${IGreen} $* ${Color_Off}" >&2
@@ -105,6 +108,10 @@ spinner() {
 	sleep '.7'
 	done
 	#echo ']'
+}
+###################################################################### Start install.sh
+is_mounted() {
+	grep -q "$1" /etc/mtab
 }
 ###################################
 apt_install() {
@@ -320,7 +327,7 @@ git_clone_pull() {
 ################################### Hardening
 harden_system() {
 	header "Hardening"
-	/bin/bash "$GITDIR"/scripts/hardening.sh && success "Hardening executed" || error "Hardening failed"
+	hardenin && success "Hardening executed" || error "Hardening failed"
 }
 ################################### Dynamic overclock
 overclock_pi() {
@@ -426,6 +433,352 @@ start_recording() {
 	chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	"$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
+###################################################################### End install.sh
+###################################################################### Start audio.sh
+##################################### Stop all recordings just to be sure
+stop_all_recordings() {
+	if pgrep 'arecord'; then
+		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord"
+		#ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
+		sleep 2
+	fi
+
+	if [ -f /tmp/.recording.lock ]; then
+		rm /tmp/.recording.lock
+	fi
+}
+##################################### In progress flag
+echo $(date) > /tmp/.recording.lock
+##################################### Check USB drives	
+mountvar() {
+	header "Checking for USB drives." 
+	if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
+		MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
+		success "Active drive has been found, proceeding"
+	else
+		fatal "No active drive has been found, please reinsert or format USB"
+	fi
+}
+
+check_usb_drives() {
+	# check for double drives.
+	# checks lines count and invokes needed script or exit.
+	# if 0 lines - exit
+	# if 1 lines - continue
+	# if any other number of lines - exit
+	case $usb_count in  
+	    0) fatal "No active drive has been found, please reinsert or format USB"
+	    ;;  
+	    1) mountvar
+	    ;;  
+	    *) fatal "More then 1 USB storage device found, this is not supported yet"
+	    ;;  
+	esac
+}
+##################################### Check if storage is writable
+storage_writable_check() {
+	header "Checking if the storage is writable." 
+	touch "$MNTPT"/.test
+	if [ -f "$MNTPT/.test" ]; then
+		success "Storage is writable"
+		rm "$MNTPT"/.test
+	else
+		error "Storage is not writable, exiting."
+		exit 1
+	fi
+}
+##################################### Check free space
+check_freespace_prior() {
+	header "Checking free space available on root." 
+	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
+		error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+	else
+		success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+	fi      
+
+	header "Checking free space available on storage." 
+	if [ $USEP -ge "$MAXPCT" ]; then
+		error "Drive has less then 10% storage capacity available, please free up space."
+	else
+		success "Drive has more then 10% capacity available, proceeding"
+	fi
+
+	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
+		fatal "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
+	else
+		success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
+	fi
+}
+##################################### Check for USB Mic
+check_usb_mic() {
+micvar() {
+header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected" 
+arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
+if [ $? -eq 0 ]; then
+	success "USB Microphone detected"
+else
+	fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB"
+	#LED/beep that mic is not detected
+	# sleep 10 && reboot
+fi
+}
+
+# check for amount of MICs
+# checks lines count and invokes needed script or exit.
+# if 0 lines - exit
+# if 1 lines - continue
+# if any other number of lines - exit
+case $mic_count in  
+    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB"
+    ;;  
+    1) micvar
+    ;;  
+    *) fatal "More then 1 USB Mic found"
+    ;;  
+esac
+]
+##################################### Set volume and unmute
+set_vol() {
+	header "Set volume and unmute" 
+	amixer -q -c $CARD set Mic 80% unmute
+	if [ $? -eq 0 ]; then
+		success "Mic input volume set to 80% and is unmuted"
+	else
+		fatal "Failed to set input volume"
+	fi
+}
+##################################### Test recording
+test_rec() {
+	header "Test recording"
+	arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
+	if [ $? -eq 0 ]; then
+		success "Test recording is done"
+	else
+		fatal "Test recording failed"
+	fi
+}
+##################################### Check recording file size
+check_rec_filesize() {
+	header "Check if recording file size is not 0" 
+	if [ -s /tmp/test-mic.wav ]; then
+		success "File contains data"
+	else
+		error "File is empty! Unable to record."
+	fi
+}
+##################################### Test playback
+test_playback() {
+	header "Testing playback of the recording"
+	aplay /tmp/test-mic.wav
+	if [ $? -eq 0 ]; then
+		success "Playback is ok"
+		rm -r /tmp/test-mic.wav
+	else
+		error "Playback failed"
+		rm -r /tmp/test-mic.wav
+	fi
+}
+##################################### Check for double channel
+check_double_channel() {
+	# channel=$()
+	# if channel = 2 then
+	#else
+	#fi
+}
+##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
+record_audio() {
+	FILEDATE=$(date '+%Y-%m-%d_%H%M')
+	mkdir -p "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
+	arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
+	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
+	gpg1 	--homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+		--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
+		--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
+	vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
+	tee "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
+	clear
+	sleep 3
+
+	if [ -f "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" ]; then
+		success "Recording is done"
+	else
+		error "Something went wrong during the recording flow"
+	fi
+
+	# Reverse Pipe
+	vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | \
+	gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
+
+	# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
+	#pkill -2 'arecord'
+
+	# Error finding card
+	# ALSA lib pcm_hw.c:1829:(_snd_pcm_hw_open) Invalid value for card
+
+	# GPG additions
+	#--passphrase-file file reads the passphrase from a file
+	#--passphrase string uses string as the passphrase
+	# Youll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
+}
+###################################### Create par2 files
+create_par2() {
+	# Implement a last modified file check for the latest recording only
+	par2 create "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
+}
+###################################### Verify par2 files
+verify_par2() {
+	if [[ $(par2 verify "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
+		success "Par2 verified"
+	else
+		error "Par2 verification failed"
+	fi
+}
+##################################### Check free space after recording
+check_freespace() {
+	header "Checking free space available on storage after recording." 
+	if [ $USEP -ge "$MAXPCT" ]; then
+		error "Drive has less then 10% storage capacity available, please free up space."
+	else
+		success "Drive has more then 10% capacity available, proceeding"
+	fi
+
+	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
+		error "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
+	else
+		success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
+	fi
+}
+##################################### Backup recordings ///// make this split
+backup_recordings() {
+	if [ -d "$LOCALSTORAGE" ]; then
+		chown -R "$USER":"$USER" "$LOCALSTORAGE"
+	else
+		mkdir "$LOCALSTORAGE"
+		chown -R "$USER":"$USER" "$LOCALSTORAGE"
+	fi
+
+	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
+		error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+	else
+		success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+		rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
+	fi      
+}
+##################################### Sync logs to USB
+sync_to_usb() {
+	mkdir -p "$MNTPT"/Logs
+	rsync -aAX /var/tmp/dietpi/logs/ "$MNTPT"/Logs/ && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+	rsync -aAX /var/log/{audio-recording.log,audio-install.log,usb-automount.log} "$MNTPT"/Logs/ && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+}
+##################################### Unmount device
+unmout_device() {
+	MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
+	sync ; sleep 3 ; echo 
+	systemd-umount "$MNTPTR"
+	if [ $? -eq 0 ]; then
+		success "Systemd-unmount done"
+		# Remove folder after unmount
+		sleep 2
+		rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
+	else
+		error "Systemd-umount failed"
+		umount -l "$MNTPTR" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
+		#systemctl disable "$MOUNT_DIR-$DEVICE".mount && success "Systemctl disabled $MOUNT_DIR-$DEVICE.mount done" || error "Systemctl disabled $MOUNT_DIR-$DEVICE.mount failed"
+		#systemctl daemon-reload && success "Systemctl daemon-reload done" || error "Systemctl daemon-reload failed"
+		#systemctl reset-failed && success "Systemctl reset-failed done" || error "Systemctl reset-failed failed"
+		# Remove folder after unmount
+		sleep 2
+		rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
+	fi	
+
+	# test that this device has disappeared from mounted devices
+	device_mounted=$(grep -q "$DEV" /etc/mtab)
+	if [ "$device_mounted" ]; then
+		error "Failed to Un-Mount, forcing umount -l"
+		echo "temp disable of unmount for dev"
+		umount -l "/dev/$DEVICE" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
+		if [ $? -eq 0 ]; then
+			rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
+		fi
+	else
+		success "Device not present in /etc/mtab"
+	fi
+}
+###################################################################### Hardening
+hardening() {
+	# fail2ban install
+	FB=$(dpkg-query -W -f='${Status}' fail2ban)
+	if [ "$FB" == "install ok installed" ]; then
+		echo -e "${IYellow}Fail2ban is already installed${Color_Off}" >&2
+	else
+		apt-get install fail2ban -y -qq
+
+		wget -O /etc/fail2ban/jail.local https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/static/jail.local
+
+		systemctl restart fail2ban
+
+		if [ "$FB" == "install ok installed" ]; then
+			echo ; echo -e "|" "${IGreen}Fail2ban install - Done${Color_Off} |" >&2
+		else
+			echo ; echo -e "|" "${IRed}Fail2ban install - Failed${Color_Off} |" >&2
+		fi
+	fi
+
+	if [ "$UFWSTATUS" == "ERROR: Couldn't determine iptables version" ]; then
+		update-alternatives --set iptables /usr/sbin/iptables-legacy && success "Fixed iptables issue with UFW. Next reboot will set firewall rules" || error "Failed to fix iptables issue with UFW"
+	#elif [ "$UFWSTATUS" == "ERROR: problem running iptables: iptables v1.8.7 (legacy): can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
+	#Perhaps iptables or your kernel needs to be upgraded." ]; then
+	#        warning "We need a reboot in order to use UFW with iptables"
+	else
+	echo "y" | ufw reset
+	ufw default allow outgoing
+	ufw default deny incoming
+	ufw limit 22/tcp
+	echo "y" | ufw enable
+	fi
+}
+###################################################################### Overclock.sh
+overclock_rpi() {
+	# No core freq changes for RPI4 
+	# https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md
+	# https://elinux.org/RPiconfig
+
+	CONFIG="/boot/config.txt"
+
+	sed -i '/arm_freq=/d' "$CONFIG"
+	sed -i '/arm_freq_min=/d' "$CONFIG"
+	sed -i '/over_voltage=/d' "$CONFIG"
+	sed -i '/over_voltage_min=/d' "$CONFIG"
+	sed -i '/temp_limit=/d' "$CONFIG"
+	sed -i '/initial_turbo=/d' "$CONFIG"
+	sed -i '/core_freq/d' "$CONFIG"
+	sed -i '/sdram_freq/d' "$CONFIG"
+	sed -i '/-------Overclock-------/d' "$CONFIG"
+
+	# Dynamic overclock config
+cat >> "$CONFIG" <<EOF
+#-------Overclock-------
+arm_freq=2000
+arm_freq_min=600
+over_voltage=6
+over_voltage_min=0
+temp_limit=75
+initial_turbo=60
+EOF
+
+}
+###################################################################### Usb-automount.sh
+usb_automount() {
+
+}
+###################################################################### Usb-initloader.sh
+usb_initloader() {
+
+}
+###################################################################### Usb-unloader.sh
+usb_unloader() {
+
+}
 ################################### Define parameters for auto-start program
 automount() {
     header "USB Auto Mount$DATE"; echo
@@ -462,7 +815,6 @@ automount() {
 	sleep 3
 	is_mounted "$DEVICE" && success "Mount OK" || fatal "Sumtin wong sir"
 }
-
 #################################### Auto Start Function
 autostart() {
 header "USB Auto Start Program"
@@ -525,7 +877,6 @@ header "Start recording"
 echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
 "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
-
 ################################### usb-unloader.sh
 autounload() {
 	header "USB UnLoader"   
@@ -554,7 +905,6 @@ autounload() {
 		success "Directory /mnt/$DEVICE not present"
 	fi
 }
-
 ###################################
 print_text_in_color() {
 printf "%b%s%b\n" "$1" "$2" "$Color_Off"
