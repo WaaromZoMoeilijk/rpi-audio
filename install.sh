@@ -13,7 +13,7 @@ source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/m
 # 1 = ON / 0 = OFF
 DEBUG=0
 debug_mode
-###################################  Check if script runs as root
+################################### Check if script runs as root
 root_check
 clear
 ################################### Prefer IPv4 for apt
@@ -22,7 +22,7 @@ ipv4_apt
 rc_local
 ################################### Set timezone based upon WAN ip
 tz_wan_ip
-#################################### Update OS
+################################### Update OS
 update_os
 ################################### Dependencies installation
 dependencies_install
