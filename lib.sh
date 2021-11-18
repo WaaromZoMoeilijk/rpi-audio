@@ -3,22 +3,35 @@
 # Section a: variables
 # 	  b: install.sh
 #	  c: audio.sh 
-#	  d: hardening.sh
-#	  e: overclock.sh
-#
+#	  d: hardening
+#	  e: overclock
+#	  f: auto-start program
+#	  g: usb-unloader
+#	  h: bash colors
+###################################################################### Section A: Variables
+################################### Changeable by end user:
+# Folders
+LOG_DIR="/var/log"
+GITDIR="/opt/rpi-audio"
+MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
+USER="dietpi" # Pam user
+USERNAME="$USER" # Will be removed
+TITLE=$(cat /etc/hostname) # Opusenc
+ARTIST="RaspberryPI" # Opusenc
+ALBUM="N/a" # Opusenc
+GENRE="Recording" # Opusenc
+GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
+MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
+MAXPCT='90' # Max used % of / or USB storage used in order to proceed
+################################### Please don't change anything below unless you know what you are doing.
 ################################### Folders
 CONFIG="/boot/config.txt"
-GITDIR="/opt/rpi-audio"
 LOCALSTORAGE="/Recordings"
 SCRIPT_DIR="$GITDIR/scripts"
-LOG_DIR="/var/log"
 LOG_FILE="$LOG_DIR/audio-usb-automount.log"
 LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
 LOG_FILE_INSTALL="$LOG_DIR/audio-install.log"
-MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 ################################### System
-USER="dietpi"
-USERNAME="dietpi"
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
 DEV=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
@@ -27,13 +40,6 @@ DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}
 BLOCKSIZE=$(blockdev --getbsz "$DEV")
 USEP=$(df -h | grep "$DEV" | awk '{ print $5 }' | cut -d'%' -f1)
 LOCALSTORAGEUSED=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | awk '{print $4}' | sed 's|M||g')
-################################### Opusenc
-TITLE=$(cat /etc/hostname)
-ARTIST="RaspberryPI"
-ALBUM="N/a"
-GENRE="Recording"
-################################### GPG
-GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 ################################### Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
 GATEWAY=$(ip route | grep default | awk '{print $3}')
@@ -48,8 +54,6 @@ NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
-MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
-MAXPCT='90' # Max used % of / or USB storage in order to proceed
 mic_count=$(echo -n "$OUTPUTMIC" | grep -c '^')
 usb_count=$(echo -n "$OUTPUTUSB" | grep -c '^')
 OUTPUTMIC=$(arecord --list-devices | grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC') # $1 Process Id
@@ -109,7 +113,7 @@ spinner() {
 	done
 	#echo ']'
 }
-###################################################################### Start install.sh
+###################################################################### Section B: install.sh
 is_mounted() {
 	grep -q "$1" /etc/mtab
 }
@@ -433,8 +437,9 @@ start_recording() {
 	chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	"$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
-###################################################################### End install.sh
-###################################################################### Start audio.sh
+###################################################################### Section B: install.sh
+
+###################################################################### Section C: audio.sh
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
 	if pgrep 'arecord'; then
@@ -704,7 +709,9 @@ unmout_device() {
 		success "Device not present in /etc/mtab"
 	fi
 }
-###################################################################### Hardening
+###################################################################### Section C: audio.sh
+
+###################################################################### Section D: hardening
 hardening() {
 	# fail2ban install
 	FB=$(dpkg-query -W -f='${Status}' fail2ban)
@@ -718,9 +725,9 @@ hardening() {
 		systemctl restart fail2ban
 
 		if [ "$FB" == "install ok installed" ]; then
-			echo ; echo -e "|" "${IGreen}Fail2ban install - Done${Color_Off} |" >&2
+			echo -e "|" "${IGreen}Fail2ban install - Done${Color_Off} |" >&2
 		else
-			echo ; echo -e "|" "${IRed}Fail2ban install - Failed${Color_Off} |" >&2
+			echo -e "|" "${IRed}Fail2ban install - Failed${Color_Off} |" >&2
 		fi
 	fi
 
@@ -737,7 +744,9 @@ hardening() {
 	echo "y" | ufw enable
 	fi
 }
-###################################################################### Overclock.sh
+###################################################################### Section D: hardening
+
+###################################################################### Section E: Overclock
 overclock_rpi() {
 	# No core freq changes for RPI4 
 	# https://www.raspberrypi.org/documentation/configuration/config-txt/overclocking.md
@@ -765,21 +774,10 @@ over_voltage_min=0
 temp_limit=75
 initial_turbo=60
 EOF
-
 }
-###################################################################### Usb-automount.sh
-usb_automount() {
+###################################################################### Section E: Overclock
 
-}
-###################################################################### Usb-initloader.sh
-usb_initloader() {
-
-}
-###################################################################### Usb-unloader.sh
-usb_unloader() {
-
-}
-################################### Define parameters for auto-start program
+###################################################################### Section F: auto-start program
 automount() {
     header "USB Auto Mount$DATE"; echo
 
@@ -877,18 +875,20 @@ header "Start recording"
 echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
 "$GITDIR/scripts/audio.sh" >> "$LOG_FILE_AUDIO" 2>&1
 }
-################################### usb-unloader.sh
+###################################################################### Section F: auto-start program
+
+###################################################################### Section G: usb-unloader.sh
 autounload() {
 	header "USB UnLoader"   
 
 	if [ -z "$MOUNT_DIR" ]; then
-	     error "Failed to supply Mount Dir parameter"
-	exit 1
+		error "Failed to supply Mount Dir parameter"
+		exit 1
 	fi
 
 	if [ -z "$DEVICE" ]; then
-	     error "Failed to supply DEVICE parameter"
-	exit 1
+		error "Failed to supply DEVICE parameter"
+		exit 1
 	fi
 
 	if [ -d /mnt/"$DEVICE" ]; then
@@ -905,7 +905,10 @@ autounload() {
 		success "Directory /mnt/$DEVICE not present"
 	fi
 }
-###################################
+
+###################################################################### Section G: usb-unloader.sh
+
+###################################################################### Section H: Bash colors
 print_text_in_color() {
 printf "%b%s%b\n" "$1" "$2" "$Color_Off"
 }
@@ -974,3 +977,4 @@ On_IBlue='\e[0;104m'    # Blue
 On_IPurple='\e[0;105m'  # Purple
 On_ICyan='\e[0;106m'    # Cyan
 On_IWhite='\e[0;107m'   # White
+###################################################################### Section H: Bash colors
