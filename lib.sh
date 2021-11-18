@@ -176,27 +176,27 @@ rc_local() {
 	rm /etc/systemd/system/rc-local.service || true
 	systemctl daemon-reload || true
 
-	cat > /etc/systemd/system/rc-local.service <<EOF
-	[Unit]
-	Description=/etc/rc.local
-	ConditionPathExists=/etc/rc.local
-	[Service]
-	Type=forking
-	ExecStart=/etc/rc.local start
-	TimeoutSec=0
-	StandardOutput=tty
-	RemainAfterExit=yes
-	SysVStartPriority=99
-	[Install]
-	WantedBy=multi-user.target
-	EOF
+cat > /etc/systemd/system/rc-local.service <<EOF
+[Unit]
+Description=/etc/rc.local
+ConditionPathExists=/etc/rc.local
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+[Install]
+WantedBy=multi-user.target
+EOF
 
-	# Add rc.local file
-	cat > /etc/rc.local <<EOF
-	#!/bin/sh -e
-	/bin/bash $GITDIR/install.sh >> $LOG_FILE_INSTALL 2>&1&
-	exit 0
-	EOF
+# Add rc.local file
+cat > /etc/rc.local <<EOF
+#!/bin/sh -e
+/bin/bash $GITDIR/install.sh >> $LOG_FILE_INSTALL 2>&1&
+exit 0
+EOF
 
 	chmod +x /etc/rc.local
 	systemctl daemon-reload
