@@ -22,7 +22,7 @@ ALBUM="N/a" # Opusenc
 GENRE="Recording" # Opusenc
 GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
-MAXPCT='90' # Max used % of / or USB storage used in order to proceed
+MAXPCT='95' # Max used % of / or USB storage used in order to proceed
 ################################### Please don't change anything below unless you know what you are doing.
 ################################### Folders
 CONFIG="/boot/config.txt"
