@@ -808,7 +808,7 @@ automount() {
     is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
 
     # test mountpoint - it shouldn't exist
-    [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "seems mountpoint $MOUNT_DIR/$DEVICE already exists"
+    [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "It seems mountpoint $MOUNT_DIR/$DEVICE already exists"
 
     # make the mountpoint
     mkdir "$MOUNT_DIR/$DEVICE" && success "Mountpoint $MOUNT_DIR/$DEVICE created" || fatal "Mountpoint $MOUNT_DIR/$DEVICE creation failed"
@@ -819,16 +819,15 @@ automount() {
     # mount the device base on USB file system
     case "$FILESYSTEM" in
         # most common file system for USB sticks
-        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT" || fatal "Failed mounting VFAT parition"
+        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT" || fatal "Failed mounting VFAT parition" ; is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount FAT"
               ;;
         # use locale setting for ntfs
-        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS" || fatal "Failed mounting NTFS partition"
+        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS" || fatal "Failed mounting NTFS partition" ; is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount NTFS"
               ;;
         # ext2/3/4
-        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT" || fatal "Failed mounting EXT partition"
+        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT" || fatal "Failed mounting EXT partition" ; is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount EXT"
  	      ;;	
      esac
-	is_mounted "$DEVICE" && success "Mount OK" || fatal "Sumtin wong sir"
 }
 #################################### Auto Start Function
 autostart() {
