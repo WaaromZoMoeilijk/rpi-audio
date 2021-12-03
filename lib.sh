@@ -31,6 +31,11 @@ SCRIPT_DIR="$GITDIR/scripts"
 LOG_FILE="$LOG_DIR/audio-usb-automount.log"
 LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
 LOG_FILE_INSTALL="$LOG_DIR/audio-install.log"
+LOG_FILE_AUTOSTART="$LOG_DIR/usb-autostart.log"
+LOG_FILE_AUTOMOUNT="$LOG_DIR/usb-automount.log"
+LOG_FILE_INITLOADER="$LOG_DIR/usb-initloader.log"
+LOG_FILE_UNLOADER="$LOG_DIR/usb-unloader.log"
+
 ################################### System
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 #ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
