@@ -28,13 +28,12 @@ if [ -b /dev/"$DEVICE" ]; then
 	echo ; success "Valid block device found"
 else
 	echo "###########  Start usb-automount.sh  $(date)   ############"
-	echo ; fatal "No valid partition / block device found, please format a single vfat partition and retry"
+	echo ; fatal "No valid partition / block device found, please format a single EXT4/FAT/NTFS partition and retry"
 	exit 1
 fi
 
 if [ -z "$LOG_FILE" ]; then 
-	echo ; fatal "No log file present"
-	exit 1
+	echo ; error "No log file present"
 fi
 ################################### Mount & log
 automount >> "$LOG_FILE" 2>&1
