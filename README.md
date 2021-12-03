@@ -47,7 +47,7 @@
 - Once the storage is adopted it will also create "Recordings/.active" with device ID and timestamp and mountpoint appended.
 - If "recordings/.active" is present on insert, reuse this device.
 - If partition numbers is less then or more then 1 the script will exit
-- Freespace check is at least 2000MB and 10% of the total storage. Same goes for local storage (backup)
+- Freespace check is at least 2000MB and 5% of the total storage. Same goes for local storage (backup)
 
 #### Failsafe checks
 -
