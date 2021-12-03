@@ -5,7 +5,8 @@
 #   DEVICE      is the actual device node at /dev/DEVICE (returned by udev rules %k parameter) (eg sda1)
 #   FILESYSTEM  is the FileSystem type returned by rules (returned by udev rules %E{ID_FS_TYPE} or $env{ID_FS_TYPE} (eg vfat)
 ################################### Variables & functions
-source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
+#source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
+source /opt/rpi-audio/lib.sh
 
 ################################### Check for errors + debug code and abort if something isn't right
 # 1 = ON / 0 = OFF
