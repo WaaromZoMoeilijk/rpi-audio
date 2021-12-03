@@ -396,16 +396,7 @@ EOF
 }
 ################################### Storage, add auto mount & checks for usb drives
 setup_usb() {
-	header "Storage"
-	if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
-		warning "/etc/udev/rules.d/85-usb-loader.rules exists"
-	else
-	cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
-	ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
-	ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
-	EOF
-		udevadm control --reload-rules && success "Storage automation has been setup" || warning "Storage automation setup has failed"
-	fi
+
 }
 ################################### UPS
 ups_setup() {
