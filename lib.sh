@@ -328,6 +328,8 @@ git_clone_pull() {
 		git clone "$REPO" "$GITDIR" && success "Git repository cloned" || error "Git repository failed to clone"
 		chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	fi
+	
+	sed -i "s|source.*|source $GITDIR/lib.sh|g" "$GITDIR"/scripts/*.sh # Fix source in other scripts and speed up by not using WAN source files.
 }
 ################################### Hardening
 harden_system() {
