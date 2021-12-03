@@ -4,11 +4,6 @@
 #   MOUNT_DIR   is the full mount folder for device (/media/sda1)
 #   DEVICE      is the actual device node at /dev/DEVICE (returned by udev rules %k parameter) (eg sda1)
 #   FILESYSTEM  is the FileSystem type returned by rules (returned by udev rules %E{ID_FS_TYPE} or $env{ID_FS_TYPE} (eg vfat)
-#
-# In case the process of mounting takes too long for udev
-# we call this script from /home/pi/scripts/usb-initloader.sh
-# then fork out to speciality scripts
-#
 ################################### Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 
