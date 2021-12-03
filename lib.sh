@@ -672,9 +672,9 @@ backup_recordings() {
 }
 ##################################### Sync logs to USB
 sync_to_usb() {
-	mkdir -p "$MNTPT"/Logs
-	rsync -aAX /var/tmp/dietpi/logs/ "$MNTPT"/Logs/ && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
-	rsync -aAX /var/log/{audio-recording.log,audio-install.log,usb-automount.log} "$MNTPT"/Logs/ && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+	mkdir -p "$MNTPT/Logs-$NAMEDATE"
+	rsync -aAX /var/tmp/dietpi/logs/ "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+	rsync -aAX /var/log/{audio-recording.log,audio-install.log,usb-automount.log} "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
 }
 ##################################### Unmount device
 unmout_device() {
