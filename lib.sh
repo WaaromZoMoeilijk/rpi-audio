@@ -332,7 +332,7 @@ git_clone_pull() {
 ################################### Hardening
 harden_system() {
 	header "Hardening"
-	hardenin && success "Hardening executed" || error "Hardening failed"
+	bash $GITDIR"/scripts/hardening.sh && success "Hardening executed" || error "Hardening failed"
 }
 ################################### Dynamic overclock
 overclock_pi() {
