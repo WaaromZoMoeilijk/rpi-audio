@@ -401,8 +401,8 @@ setup_usb() {
 		warning "/etc/udev/rules.d/85-usb-loader.rules exists"
 	else
 cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
-ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR"/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
-ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR"/scripts/usb-initloader.sh %k"
+ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
+ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
 	udevadm control --reload-rules && success "Storage automation has been setup" || warning "Storage automation setup has failed"
 	fi
@@ -410,17 +410,17 @@ EOF
 ################################### UPS
 ups_setup() {
 	header "UPS"
-	/bin/bash "$GITDIR"/scripts/ups.sh && success "UPS scripts executed" || error "UPS scripts failed"
+	#/bin/bash "$GITDIR"/scripts/ups.sh && success "UPS scripts executed" || error "UPS scripts failed"
 }
 ################################### ZeroTier
 zerotier_setup() {
 	header "Zerotier/networking"
-	/bin/bash "$GITDIR"/scripts/zerotier.sh && success "Zerotier setup executed" || error "Zerotier setup failed"
+	#/bin/bash "$GITDIR"/scripts/zerotier.sh && success "Zerotier setup executed" || error "Zerotier setup failed"
 }
 ################################### LED / Buttons
 button_setup() {
 	header "LED/buttons"
-	/bin/bash "$GITDIR"/scripts/ph.sh && success "LED / button script executed" || error "LED / button script execution failed"
+	#/bin/bash "$GITDIR"/scripts/ph.sh && success "LED / button script executed" || error "LED / button script execution failed"
 }
 ################################### Finished installation flag
 finished_installation_flag() {
@@ -780,7 +780,7 @@ EOF
 
 ###################################################################### Section F: auto-start program
 automount() {
-    header "USB Auto Mount$DATE"; echo
+    header "USB Auto Mount $DATE"; echo
 
     # Allow time for device to be added
     sleep 2
