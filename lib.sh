@@ -332,7 +332,7 @@ git_clone_pull() {
 ################################### Hardening
 harden_system() {
 	header "Hardening"
-	bash "$GITDIR"/scripts/hardening.sh && success "Hardening executed" || error "Hardening failed"
+	#bash "$GITDIR"/scripts/hardening.sh && success "Hardening executed" || error "Hardening failed"
 }
 ################################### Dynamic overclock
 overclock_pi() {
@@ -354,21 +354,21 @@ gpg_keys() {
 		gpg1 --homedir /root/.gnupg --list-keys
 
 cat >keydetails <<EOF
-    %echo Generating a basic OpenPGP key
-    Key-Type: RSA
-    Key-Length: 4096
-    Subkey-Type: RSA
-    Subkey-Length: 4096
-    Name-Real: Recorder
-    Name-Comment: Recorder
-    Name-Email: "${GPG_RECIPIENT}"
-    Expire-Date: 0
-    %no-ask-passphrase
-    %no-protection
-    #%pubring pubring.kbx
-    #%secring trustdb.gpg
-    %commit
-    %echo done
+%echo Generating a basic OpenPGP key
+Key-Type: RSA
+Key-Length: 4096
+Subkey-Type: RSA
+Subkey-Length: 4096
+Name-Real: Recorder
+Name-Comment: Recorder
+Name-Email: "${GPG_RECIPIENT}"
+Expire-Date: 0
+%no-ask-passphrase
+%no-protection
+#%pubring pubring.kbx
+#%secring trustdb.gpg
+%commit
+%echo done
 EOF
 
 		gpg1 --verbose --homedir /root/.gnupg --batch --gen-key keydetails
@@ -424,10 +424,10 @@ button_setup() {
 }
 ################################### Finished installation flag
 finished_installation_flag() {
-	if [ -f /opt/.rpi-audio-install.sh-finished ]; then
-		echo "Install script finished on: $(date)" >> /opt/.rpi-audio-install.sh-finished
+	if [ -f "$GITDIR"/.rpi-audio-install.sh-finished ]; then
+		echo "Install script finished on: $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
 	else
-		echo "Install script finished on: $(date)" >> /opt/.rpi-audio-install.sh-finished
+		echo "Install script finished on: $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
 		reboot
 	fi
 }
@@ -454,7 +454,7 @@ stop_all_recordings() {
 	fi
 }
 ##################################### In progress flag
-echo $(date) > /tmp/.recording.lock
+echo "Start recording: $DATE" > /tmp/.recording.lock
 ##################################### Check USB drives	
 mountvar() {
 	header "Checking for USB drives." 
@@ -473,7 +473,7 @@ check_usb_drives() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $usb_count in  
-	    0) fatal "No active drive has been found, please reinsert or format USB"
+	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following: EXT4/FAT/NTFS"
 	    ;;  
 	    1) mountvar
 	    ;;  
