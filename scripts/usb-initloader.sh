@@ -40,12 +40,6 @@ DEBUG=1
 debug_mode
 
 ###################################
-DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
-USER=dietpi
-GITDIR='/opt/rpi-audio'
-LOG_DIR=/var/log
-LOG_FILE="$LOG_DIR"/usb-automount.log
-MOUNT_DIR=/mnt # Mount folder (sda1 will be added underneath this)
 # Optional parameter to:
 #   - auto start a program on ADD
 #   - auto end program on REMOVE
@@ -56,7 +50,6 @@ if [ -d "$LOG_DIR" ]; then
     echo -e "|"  "${IYellow}Directory $LOG_DIR exists${Color_Off} |" >&2
 else
     mkdir -p "$LOG_DIR"
-    touch "$LOG_FILE"
     chown -R "$USER":"$USER" "$LOG_FILE"
     echo -e "|"  "${IGreen}Directory $LOG_DIR created${Color_Off} |" >&2    
 fi
@@ -71,11 +64,11 @@ if [ "$1" == "ADD" ]; then
         exit 1
     fi
     echo -e "|"  "${IBlue}==> Adding USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
-    "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
+    "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE_AUTOMOUNT" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1&
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
     echo -e "|"  "${IBlue}==> Unmounting USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
-    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
+    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE_USBUNLOADER" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
 fi
 
 exit 0
