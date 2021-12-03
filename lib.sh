@@ -447,7 +447,7 @@ start_recording() {
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
 	if pgrep 'arecord'; then
-		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord"
+		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" #LED/beep that mic is not detected ; sleep 10 && reboot
 		#ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
 		sleep 2
 	fi
@@ -465,7 +465,7 @@ mountvar() {
 		MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
 		success "Active drive has been found, proceeding"
 	else
-		fatal "No active drive has been found, please reinsert or format USB"
+		warning "No active drive has been found, setting one up."
 	fi
 }
 
@@ -476,7 +476,7 @@ check_usb_drives() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $usb_count in  
-	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following: EXT4/FAT/NTFS"
+	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following: EXT4/FAT/NTFS" #LED/beep that mic is not detected && sleep 10 && reboot
 	    ;;  
 	    1) mountvar
 	    ;;  
@@ -493,6 +493,8 @@ storage_writable_check() {
 		rm "$MNTPT"/.test
 	else
 		error "Storage is not writable, exiting."
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot
 		exit 1
 	fi
 }
@@ -501,6 +503,8 @@ check_freespace_prior() {
 	header "Checking free space available on root." 
 	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
 		error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot		
 	else
 		success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 	fi      
@@ -508,12 +512,16 @@ check_freespace_prior() {
 	header "Checking free space available on storage." 
 	if [ $USEP -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot
 	else
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
 	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
 		fatal "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot
 	else
 		success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
 	fi
@@ -521,7 +529,7 @@ check_freespace_prior() {
 ##################################### Check for USB Mic
 check_usb_mic() {
 micvar() {
-header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected" 
+header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected for now" 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
 if [ $? -eq 0 ]; then
 	success "USB Microphone detected"
@@ -538,11 +546,11 @@ fi
 # if 1 lines - continue
 # if any other number of lines - exit
 case $mic_count in  
-    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB"
+    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; sleep 10 && reboot
     ;;  
     1) micvar
     ;;  
-    *) fatal "More then 1 USB Mic found"
+    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; sleep 10 && reboot
     ;;  
 esac
 }
@@ -554,6 +562,8 @@ set_vol() {
 		success "Mic input volume set to 80% and is unmuted"
 	else
 		fatal "Failed to set input volume"
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot
 	fi
 }
 ##################################### Test recording
@@ -564,6 +574,8 @@ test_rec() {
 		success "Test recording is done"
 	else
 		fatal "Test recording failed"
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot		
 	fi
 }
 ##################################### Check recording file size
@@ -573,6 +585,8 @@ check_rec_filesize() {
 		success "File contains data"
 	else
 		error "File is empty! Unable to record."
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot		
 	fi
 }
 ##################################### Test playback
@@ -584,7 +598,9 @@ test_playback() {
 		rm -r /tmp/test-mic.wav
 	else
 		error "Playback failed"
-		rm -r /tmp/test-mic.wav
+		rm -r /tmp/test-mic.wav\
+		#LED/beep that mic is not detected
+		# sleep 10 && reboot		
 	fi
 }
 ##################################### Check for double channel
@@ -802,20 +818,16 @@ automount() {
 
     # mount the device base on USB file system
     case "$FILESYSTEM" in
-
         # most common file system for USB sticks
         vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT" || fatal "Failed mounting VFAT parition"
               ;;
-
         # use locale setting for ntfs
         ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS" || fatal "Failed mounting NTFS partition"
               ;;
-
         # ext2/3/4
         ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT" || fatal "Failed mounting EXT partition"
  	      ;;	
      esac
-	sleep 3
 	is_mounted "$DEVICE" && success "Mount OK" || fatal "Sumtin wong sir"
 }
 #################################### Auto Start Function
