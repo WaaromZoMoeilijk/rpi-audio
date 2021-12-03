@@ -1,5 +1,6 @@
 #!/bin/bash
 # Installation script for an automated audio recorder on a RaspberryPI4 running DietPI
+# Please edit the variable's in lib.sh to accomodate your needs
 # info@waaromzomoeilijk.nl
 # login root/dietpi
 
@@ -12,6 +13,10 @@ if ping -c 1 google.com; then
 else
   source /opt/rpi-audio/lib.sh
 fi
+
+# For local deployments please # comment all the lines in the above section
+# And uncomment the below section (run the scritps inside the rpi-audio folder)
+# source $pwd/lib.sh
 
 ###################################  Check for errors + debug code and abort if something isn't right
 # 1 = ON / 0 = OFF
