@@ -31,15 +31,12 @@ else
 	exit 1
 fi
 
-if [ -z "$LOG_FILE" ]; then 
-	echo ; error "No log file present"
-fi
 ################################### Mount & log
-automount >> "$LOG_FILE" 2>&1
+automount >> "$LOG_FILE_AUTOMOUNT" 2>&1
 ###################################  Auto start & log
 if [ "$AUTO_START" == "1" ]; then # Do we want to auto-start a new process? 0 - No; 1 - Yes
 	echo ; echo -e "|" "${IBlue} --- USB Auto start script --- ${Color_Off} |" >&2 ; echo
-	autostart >> "$LOG_FILE" 2>&1
+	autostart >> "$LOG_FILE_AUTOSTART" 2>&1
 	echo "###########  END usb-automount.sh  $(date)   ############"
 fi
 ################################### Cleanup & exit
