@@ -542,7 +542,7 @@ case $mic_count in
     *) fatal "More then 1 USB Mic found"
     ;;  
 esac
-]
+}
 ##################################### Set volume and unmute
 set_vol() {
 	header "Set volume and unmute" 
@@ -586,6 +586,7 @@ test_playback() {
 }
 ##################################### Check for double channel
 check_double_channel() {
+	header "Double channel check"
 	# channel=$()
 	# if channel = 2 then
 	#else
