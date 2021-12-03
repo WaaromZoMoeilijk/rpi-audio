@@ -27,15 +27,15 @@ fi
 
 if [ "$UFWSTATUS" == "ERROR: Couldn't determine iptables version" ]; then
         update-alternatives --set iptables /usr/sbin/iptables-legacy && success "Fixed iptables issue with UFW. Next reboot will set firewall rules" || error "Failed to fix iptables issue with UFW"
-#elif [ "$UFWSTATUS" == "ERROR: problem running iptables: iptables v1.8.7 (legacy): can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
-#Perhaps iptables or your kernel needs to be upgraded." ]; then
-#        warning "We need a reboot in order to use UFW with iptables"
+        #elif [ "$UFWSTATUS" == "ERROR: problem running iptables: iptables v1.8.7 (legacy): can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
+        #Perhaps iptables or your kernel needs to be upgraded." ]; then
+        #        warning "We need a reboot in order to use UFW with iptables"
 else
-echo "y" | ufw reset
-ufw default allow outgoing
-ufw default deny incoming
-ufw limit 22/tcp
-echo "y" | ufw enable
+        echo "y" | ufw reset
+        ufw default allow outgoing
+        ufw default deny incoming
+        ufw limit 22/tcp
+        echo "y" | ufw enable
 fi
 
 exit 0
