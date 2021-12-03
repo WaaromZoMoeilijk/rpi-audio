@@ -330,6 +330,7 @@ git_clone_pull() {
 	fi
 	
 	sed -i "s|source.*|source $GITDIR/lib.sh|g" "$GITDIR"/scripts/*.sh # Fix source in other scripts and speed up by not using WAN source files.
+	mkdir -p "$LOCALSTORAGE"
 }
 ################################### Hardening
 harden_system() {
@@ -662,7 +663,7 @@ backup_recordings() {
 	if [ -d "$LOCALSTORAGE" ]; then
 		chown -R "$USER":"$USER" "$LOCALSTORAGE"
 	else
-		mkdir "$LOCALSTORAGE"
+		mkdir -p "$LOCALSTORAGE"
 		chown -R "$USER":"$USER" "$LOCALSTORAGE"
 	fi
 
