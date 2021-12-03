@@ -7,8 +7,11 @@
 # v0.0.9
 
 ################################### Variables & functions
-source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
-export SOURCE="$GITDIR" # Fix for usb scripts source.
+if ping -c 1 google.com; then
+  source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
+else
+  source /opt/rpi-audio/lib.sh
+fi
 
 ###################################  Check for errors + debug code and abort if something isn't right
 # 1 = ON / 0 = OFF
