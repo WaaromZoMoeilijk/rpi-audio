@@ -1,6 +1,6 @@
 #!/bin/bash
 ##################################### Variables & functions
-source "$SOURCE"
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 ##################################### Check for errors + debug code and abort if something isn't right
 # 1 = ON / 0 = OFF
 DEBUG=0
