@@ -21,7 +21,7 @@ LOG_FILE="$1"
 MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 FILESYSTEM="$4"
-AUTO_START="$5" # Do we want to auto-start a new process? 0 - No; 1 - Yes
+AUTO_START="$5" 
 ################################### check input parameters
 [ "$MOUNT_DIR" ] || fatal "Missing Parameter: MOUNT_DIR"
 [ "$DEVICE" ] || fatal "Missing Parameter: DEVICE"
@@ -43,7 +43,7 @@ fi
 ################################### Mount & log
 automount >> "$LOG_FILE" 2>&1
 ###################################  Auto start & log
-if [ "$AUTO_START" == "1" ]; then
+if [ "$AUTO_START" == "1" ]; then # Do we want to auto-start a new process? 0 - No; 1 - Yes
 	echo ; echo -e "|" "${IBlue} --- USB Auto start script --- ${Color_Off} |" >&2 ; echo
 	autostart >> "$LOG_FILE" 2>&1
 	echo "###########  END usb-automount.sh  $(date)   ############"
