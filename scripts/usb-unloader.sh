@@ -11,7 +11,7 @@
 # use tail /var/log/syslog to look at latest events in log
 #
 ################################### Variables & functions
-source "$SOURCE"
+source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 
 ################################### Check for errors + debug code and abort if something isn't right
 # 1 = ON | 0 = OFF
