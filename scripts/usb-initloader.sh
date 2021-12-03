@@ -70,11 +70,11 @@ if [ "$1" == "ADD" ]; then
         echo -e "|"  "${IGreen}Rootdrive: $ROOTDRIVE == udev:$DEV{Color_Off} |" >&2 
         exit 1
     fi
-    echo -e "|"  "${IBlue}==> Adding USB Device $DEVICE$ <=={Color_Off} |" >> "$LOG_FILE" >&2
+    echo -e "|"  "${IBlue}==> Adding USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
     "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1&
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
-    echo -e "|"  "${IBlue}==> Unmounting USB Device $DEVICE$ <=={Color_Off} |" >> "$LOG_FILE" >&2
+    echo -e "|"  "${IBlue}==> Unmounting USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
     "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
 fi
 
