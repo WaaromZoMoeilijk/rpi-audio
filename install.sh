@@ -2,7 +2,7 @@
 # Installation script for an automated audio recorder on a RaspberryPI4 running DietPI
 # Please edit the variable's in lib.sh to accomodate your needs
 # info@waaromzomoeilijk.nl
-# login root/dietpi
+# login root/dietpi //// raspberry
 
 # Version
 # v0.0.9
