@@ -77,16 +77,26 @@ is_root() {
 }
 ###################################
 root_check() {
-if ! is_root; then
-	fatal "Failed, script needs sudo permissions for now"
-	exit 1
-fi
+	if ! is_root; then
+		fatal "Failed, script needs sudo permissions for now"
+		exit 1
+	fi
 }
 ###################################
 debug_mode() {
-if [ "$DEBUG" -eq 1 ]; then
-	set -ex
-fi
+	if [ "$DEBUG" -eq 1 ]; then
+		set -ex
+	fi
+}
+###################################
+touch_log() {
+	mkdir -p $LOG_DIR
+	touch LOG_FILE
+	touch LOG_FILE_INSTALL
+	touch LOG_FILE_AUTOSTART
+	touch LOG_FILE_AUTOMOUNT
+	touch LOG_FILE_INITLOADER
+	touch LOG_FILE_UNLOADER
 }
 ################################### easy colored output
 success() {
