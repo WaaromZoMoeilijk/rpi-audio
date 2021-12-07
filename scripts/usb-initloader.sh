@@ -11,9 +11,9 @@
 #
 # ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="/home/dietpi/scripts/usb-initloader.sh ADD %k $env(ID_FS_TYPE)"
 #
-# Mounts usb device on /media/<dev>
-# Logs changes to /var/log/syslog
-# use tail /var/log/syslog to look at latest events in log
+# Mounts usb device on /mnt/<dev>
+# Logs changes to /var/log/usb-*.log
+# use tail /var/log/{usb*,audio*} to look at latest events in log
 #
 # ** DEVICE REMOVED - USB device removed **
 # ---------------------------------------------
@@ -39,19 +39,13 @@ fi
 DEBUG=1
 debug_mode
 
-###################################
-# Optional parameter to:
-#   - auto start a program on ADD
-#   - auto end program on REMOVE
-AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
-
 ################################### Create log dir if needed
 if [ -d "$LOG_DIR" ]; then
-    echo -e "|"  "${IYellow}Directory $LOG_DIR exists${Color_Off} |" >&2
+    warning "Directory $LOG_DIR exists"
 else
     mkdir -p "$LOG_DIR"
-    chown -R "$USER":"$USER" "$LOG_DIR"/{usb-*,audio-*}
-    echo -e "|"  "${IGreen}Directory $LOG_DIR created and permissions set${Color_Off} |" >&2    
+    chown -R "$USER":"$USER" "$LOG_DIR"/{usb*,audio*}
+    success "Directory $LOG_DIR created and permissions set" 
 fi
 
 ###################################  Call load or unload script
@@ -60,15 +54,15 @@ if [ "$1" == "ADD" ]; then
     DEVTYPE="$3"   # USB device formatting type
     DEV=$(echo "$DEVICE" | cut -c -3)
     if [ "$ROOTDRIVE" == "$DEV" ]; then
-        echo -e "|"  "${IGreen}Rootdrive: $ROOTDRIVE == udev:$DEV{Color_Off} |" >&2 
+        fatal "Rootdrive: $ROOTDRIVE == udev:$DEV"
         exit 1
     fi
-    echo -e "|"  "${IBlue}==> Adding USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
+    header "Adding USB Device $DEVICE $DATE" >> "$LOG_FILE" >&2
     "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE_AUTOMOUNT" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1&
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
-    echo -e "|"  "${IBlue}==> Unmounting USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
-    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE_UNLOADER" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
+    header "Unmounting USB Device $DEVICE $DATE" >> "$LOG_FILE" >&2
+    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE_UNLOADER" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1& 
 fi
 
 exit 0
