@@ -1,13 +1,13 @@
 #!/bin/bash
 # Index
-# Section a: variables
-# 	  b: install.sh
-#	  c: audio.sh 
-#	  d: hardening
-#	  e: overclock
-#	  f: auto-start program
-#	  g: usb-unloader
-#	  h: bash colors
+# Section A: Variables
+# 	  B: Install.sh
+#	  C: Audio.sh 
+#	  D: Hardening
+#	  E: Overclock
+#	  F: Auto-start program
+#	  G: Usb-unloader
+#	  H: Bash colors
 ###################################################################### Section A: Variables
 ################################### Changeable by end user:
 # Folders
@@ -23,7 +23,7 @@ GENRE="Recording" # Opusenc
 GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
 MAXPCT='95' # Max used % of / or USB storage used in order to proceed
-################################### Please don't change anything below unless you know what you are doing.
+###################################################################### Please don't change anything below unless you know what you are doing.
 ################################### Folders
 CONFIG="/boot/config.txt"
 LOCALSTORAGE="/Recordings"
@@ -35,7 +35,6 @@ LOG_FILE_AUTOSTART="$LOG_DIR/usb-autostart.log"
 LOG_FILE_AUTOMOUNT="$LOG_DIR/usb-automount.log"
 LOG_FILE_INITLOADER="$LOG_DIR/usb-initloader.log"
 LOG_FILE_UNLOADER="$LOG_DIR/usb-unloader.log"
-
 ################################### System
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 #ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
@@ -211,9 +210,9 @@ EOF
 	if [ -f /etc/rc.local ]; then
 		# Check if the above is succesfull
 		if cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
-			echo ; success "Setting up rc.local - Created"
+			success "Setting up rc.local - Created"
 		else
-			echo ; error "Setting up rc.local failed, file exists but not the proper content"
+			error "Setting up rc.local failed, file exists but not the proper content"
 		fi
 	else
 		echo ; error "Setting up rc.local failed"
@@ -286,9 +285,9 @@ vdmfec_install() {
 		wget 'http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb' && dpkg -i 'vdmfec_1.0-2+b2_arm64.deb' && rm 'vdmfec_1.0-2+b2_arm64.deb'
 		apt list vdmfec > /tmp/.vdm 2>&1 || true
 		if echo $(cat /tmp/.vdm) | grep -q installed; then
-			echo ; success "vdmfec install done"
+			success "vdmfec install done"
 		else
-			echo ; error "vdmfec install failed"
+			error "vdmfec install failed"
 		fi
 	fi
 }
