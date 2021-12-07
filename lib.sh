@@ -447,9 +447,9 @@ button_setup() {
 ################################### Finished installation flag
 finished_installation_flag() {
 	if [ -f "$GITDIR"/.rpi-audio-install.sh-finished ]; then
-		echo "Install script finished on: $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
+		echo "Install script finished on $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
 	else
-		echo "Install script finished on: $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
+		echo "Install script finished on $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
 		reboot
 	fi
 }
@@ -688,9 +688,9 @@ check_freespace() {
 	fi
 
 	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
-		error "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
+		error "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
 	else
-		success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
+		success "More then then $MINMB MB available on usb storage directory $USEMMB (USB)"
 	fi
 }
 ##################################### Backup recordings ///// make this split
@@ -703,9 +703,9 @@ backup_recordings() {
 	fi
 
 	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
-		error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+		error "Less then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 	else
-		success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+		success "More then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 		rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
 	fi      
 }
@@ -838,15 +838,17 @@ automount() {
     # mount the device base on USB file system
     case "$FILESYSTEM" in
         # most common file system for USB sticks
-        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: VFAT" || fatal "Failed mounting VFAT parition" ; is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount FAT"
+        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs VFAT" || fatal "Failed mounting VFAT parition"
               ;;
         # use locale setting for ntfs
-        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: NTFS" || fatal "Failed mounting NTFS partition" ; is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount NTFS"
+        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs NTFS" || fatal "Failed mounting NTFS partition" 
               ;;
         # ext2/3/4
-        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs: EXT" || fatal "Failed mounting EXT partition" ; is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount EXT"
+        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs EXT" || fatal "Failed mounting EXT partition"
  	      ;;	
      esac
+
+    is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount, please check the logs"
 }
 #################################### Auto Start Function
 autostart() {
