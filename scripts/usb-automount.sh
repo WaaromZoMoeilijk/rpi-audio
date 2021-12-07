@@ -35,11 +35,11 @@ fi
 automount >> "$LOG_FILE_AUTOMOUNT" 2>&1
 
 ###################################  Auto start & log
-if [ "$AUTO_START" == "1" ]; then # Do we want to auto-start a new process? 0 - No; 1 - Yes
-	echo ; echo -e "|" "${IBlue} --- USB Auto start script --- ${Color_Off} |" >&2 ; echo
-	autostart >> "$LOG_FILE_AUTOSTART" 2>&1
-	echo "###########  END usb-automount.sh  $(date)   ############"
-fi
+#if [ "$AUTO_START" == "1" ]; then # Do we want to auto-start a new process? 0 - No; 1 - Yes
+header "[ == USB Auto start script == ]"
+autostart >> "$LOG_FILE_AUTOSTART" 2>&1
+success "[ == END usb-automount.sh  $(date) == ]"
+#fi
 
 ################################### Cleanup & exit
 exit 0
