@@ -495,7 +495,7 @@ check_usb_drives() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $usb_count in  
-	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following: EXT4/FAT/NTFS" #LED/beep that mic is not detected && sleep 10 && reboot
+	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following EXT4/FAT/NTFS" #LED/beep that mic is not detected && sleep 10 && reboot
 	    ;;  
 	    1) mountvar
 	    ;;  
@@ -521,11 +521,11 @@ storage_writable_check() {
 check_freespace_prior() {
 	header "[ ==  Checking free space available on root. == ]"
 	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
-		error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+		error "Less then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 		#LED/beep that mic is not detected
 		# sleep 10 && reboot		
 	else
-		success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
+		success "More then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 	fi      
 
 	header "[ ==  Checking free space available on storage. == ]"
@@ -538,11 +538,11 @@ check_freespace_prior() {
 	fi
 
 	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
-		fatal "Less then $MINMB MB available on usb storage directory: $USEM MB (USB)"
+		fatal "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
 		#LED/beep that mic is not detected
 		# sleep 10 && reboot
 	else
-		success "More then then $MINMB MB available on usb storage directory: $USEMMB (USB)"
+		success "More then then $MINMB MB available on usb storage directory $USEMMB (USB)"
 	fi
 }
 ##################################### Check for USB Mic
@@ -852,6 +852,14 @@ automount() {
 autostart() {
 header "[ ==  USB Auto Start Program == ]"
 DEV=$(echo "$DEVICE" | cut -c -3)
+echo "$DEV DEV"
+echo "$DEVICE DEVICE"
+echo "$DEV DEV"
+echo "$DEVICE DEVICE"
+echo "$DEV DEV"
+echo "$DEVICE DEVICE"
+echo "$DEV DEV"
+echo "$DEVICE DEVICE"
 # Check # of partitions
 if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
 	error "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
