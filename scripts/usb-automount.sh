@@ -23,11 +23,11 @@ MOUNT_DIR="$2"
 
 ################################### check defined log file
 if [ -b /dev/"$DEVICE" ]; then
-	echo "###########  Start usb-automount.sh  $(date)   ############"
-	echo ; success "Valid block device found"
+	header "Start usb-automount.sh $(date)"
+	success "Valid block device found"
 else
-	echo "###########  Start usb-automount.sh  $(date)   ############"
-	echo ; fatal "No valid partition / block device found, please format a single EXT4/FAT/NTFS partition and retry"
+	header "[ == Start usb-automount.sh $(date) == ]"
+	fatal "No valid partition / block device found, please format a single EXT4/FAT/NTFS partition and retry"
 	exit 1
 fi
 
