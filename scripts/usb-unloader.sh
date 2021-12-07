@@ -25,7 +25,7 @@ DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
 
 ################################### Unmount & log
-autounload >> "$LOG_FILE_AUTOUNLOAD" 2>&1
+autounload >> "$LOG_FILE_UNLOADER" 2>&1
 
 ################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
