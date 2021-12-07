@@ -37,7 +37,7 @@ automount >> "$LOG_FILE_AUTOMOUNT" 2>&1
 ###################################  Auto start & log
 #if [ "$AUTO_START" == "1" ]; then # Do we want to auto-start a new process? 0 - No; 1 - Yes
 header "[ == USB Auto start script == ]"
-autostart >> "$LOG_FILE_AUTOSTART" 2>&1
+#autostart >> "$LOG_FILE_AUTOSTART" 2>&1
 success "[ == END usb-automount.sh  $(date) == ]"
 #fi
 
