@@ -95,7 +95,7 @@ debug_mode() {
 }
 ###################################
 touch_log() {
-	mkdir -p $LOG_DIR
+	mkdir -p "$LOG_DIR"
 	touch "$LOG_FILE"
 	touch "$LOG_FILE_INSTALL"
 	touch "$LOG_FILE_AUTOSTART"
