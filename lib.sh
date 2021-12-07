@@ -28,7 +28,7 @@ MAXPCT='95' # Max used % of / or USB storage used in order to proceed
 CONFIG="/boot/config.txt"
 LOCALSTORAGE="/Recordings"
 SCRIPT_DIR="$GITDIR/scripts"
-LOG_FILE="$LOG_DIR/usb-automount.log"
+LOG_FILE="$LOG_DIR/audio-usb-automount.log"
 LOG_FILE_AUDIO="$LOG_DIR/audio-recording.log"
 LOG_FILE_INSTALL="$LOG_DIR/audio-install.log"
 LOG_FILE_AUTOSTART="$LOG_DIR/usb-autostart.log"
@@ -848,13 +848,13 @@ autostart() {
 header "[ ==  USB Auto Start Program == ]"
 DEV=$(echo "$DEVICE" | cut -c -3)
 # Check # of partitions
-if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
+if [[ $(grep -c "$DEV"'[1]' /proc/partitions) -gt 1 ]]; then
 	error "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
 	exit 1
-elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
+elif [[ $(grep -c "$DEV"'[1]' /proc/partitions) -eq 0 ]]; then
 	error "No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
 	exit 1
-elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
+elif [[ $(grep -c "$DEV"'[1]' /proc/partitions) -eq 1 ]]; then
 	success "1 partition detected, checking if its been used before"
 	# Check if drive is empty
 	if [ -f "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
