@@ -421,9 +421,10 @@ setup_usb() {
 	header "[ ==  Storage == ]"
 	if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
 		warning "/etc/udev/rules.d/85-usb-loader.rules exists"
+        rm /etc/udev/rules.d/85-usb-loader.rules
 	fi
 	
-cat > /etc/udev/rules.d/85-usb-loader.rules <EOF
+cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
 ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
