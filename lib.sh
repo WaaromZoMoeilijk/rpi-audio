@@ -428,7 +428,6 @@ ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
 	udevadm control --reload-rules && success "Storage automation has been setup" || warning "Storage automation setup has failed"
-	fi
 }
 ################################### UPS
 ups_setup() {
