@@ -837,15 +837,12 @@ automount() {
 
     # mount the device base on USB file system
     case "$FILESYSTEM" in
-        # most common file system for USB sticks
-        vfat)  systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs VFAT" || fatal "Failed mounting VFAT parition"
+        vfat) systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs VFAT" || fatal "Failed mounting VFAT parition"
               ;;
-        # use locale setting for ntfs
-        ntfs)  systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs NTFS" || fatal "Failed mounting NTFS partition" 
+        ntfs) systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs NTFS" || fatal "Failed mounting NTFS partition" 
               ;;
-        # ext2/3/4
-        ext*)  systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs EXT" || fatal "Failed mounting EXT partition"
- 	      ;;	
+        ext*) systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs EXT" || fatal "Failed mounting EXT partition"
+              ;;	
      esac
 
     is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount, please check the logs"
@@ -854,14 +851,6 @@ automount() {
 autostart() {
     header "[ ==  USB Auto Start Program == ]"
     DEV=$(echo "$DEVICE" | cut -c -3)
-    echo "$DEV DEV"
-    echo "$DEVICE DEVICE"
-    echo "$DEV DEV"
-    echo "$DEVICE DEVICE"
-    echo "$DEV DEV"
-    echo "$DEVICE DEVICE"
-    echo "$DEV DEV"
-    echo "$DEVICE DEVICE"
     # Check # of partitions
     if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
         error "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
