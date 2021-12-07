@@ -423,7 +423,7 @@ setup_usb() {
 		warning "/etc/udev/rules.d/85-usb-loader.rules exists"
 	fi
 	
-cat > /etc/udev/rules.d/85-usb-loader.rules <<EOF
+cat > /etc/udev/rules.d/85-usb-loader.rules <EOF
 ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
 EOF
@@ -635,9 +635,9 @@ record_audio() {
 	mkdir -p "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
 	arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
-	gpg1 	--homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
-		--no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
-		--personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
+	gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+	     --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
+		 --personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 	vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
 	tee "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
 	clear
