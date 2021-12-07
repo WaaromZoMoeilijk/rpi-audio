@@ -134,23 +134,23 @@ is_mounted() {
 }
 ###################################
 apt_install() {
-	apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo ; echo -e "|" "${IGreen}Packages install done${Color_Off} |" >&2 || echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
+	apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo -e "|" "${IGreen}Packages install done${Color_Off} |" >&2 || echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
 }
 ###################################
 apt_update() {
-	apt-get update -qq -o=Dpkg::Use-Pty=0 && echo ; echo "Packages update done" || echo "Packages update - Failed"
+	apt-get update -qq -o=Dpkg::Use-Pty=0 && echo "Packages update done" || echo "Packages update - Failed"
 }
 ###################################
 apt_upgrade() {
-	sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq && echo ; echo "Packages upgrade done" || echo "Packages upgrade - Failed"
+	sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq && echo "Packages upgrade done" || echo "Packages upgrade - Failed"
 }
 ###################################
 apt_autoremove() {
-	apt-get autopurge -y -qq && echo ; echo "Packages autopurge done" || echo "Packages autopurge - Failed"
+	apt-get autopurge -y -qq && echo "Packages autopurge done" || echo "Packages autopurge - Failed"
 }
 ###################################
 apt_autoclean() {
-	apt-get -y autoclean -qq && echo ; echo "Packages clean done" || echo "Packages clean - Failed"
+	apt-get -y autoclean -qq && echo "Packages clean done" || echo "Packages clean - Failed"
 }
 ###################################
 install_if_not() {
@@ -225,7 +225,7 @@ EOF
 			error "Setting up rc.local failed, file exists but not the proper content"
 		fi
 	else
-		echo ; error "Setting up rc.local failed"
+		error "Setting up rc.local failed"
 	fi
 }
 ################################### Set timezone based upon WAN ip
@@ -279,9 +279,9 @@ dependencies_install() {
 		par2 \
 		gnupg1	
 		if [ $? -eq 0 ]; then
-			echo ; success "Packages install done"
+			success "Packages install done"
 		else
-			echo ; error "Packages install failed"
+			error "Packages install failed"
 		fi
 }
 ################################### VDMFEC
@@ -859,7 +859,7 @@ elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
 	# Check if drive is empty
 	if [ -f "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
 		# Empty
-		echo ; echo "EMPTY"
+		warning "EMPTY"
 		mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings"
 		echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && success "Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active" || error "Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active"
 		chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Set permissions on $MOUNT_DIR/$DEVICE" || error "Set permissions on $MOUNT_DIR/$DEVICE failed"
