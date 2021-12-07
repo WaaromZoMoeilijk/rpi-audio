@@ -333,7 +333,7 @@ create_user() {
 }
 ################################### Clone git repo
 git_clone_pull() {
-	header "Clone git repo"
+	header "Clone/pull git repo"
 	if [ -d "$GITDIR" ]; then
 		#rm -r "$GITDIR"
 		cd "$GITDIR" && success "Change dir to Git dir"  || error "Changing to Git dir failed"
