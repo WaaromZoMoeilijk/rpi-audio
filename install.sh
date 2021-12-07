@@ -25,6 +25,8 @@ debug_mode
 ################################### Check if script runs as root
 root_check
 clear
+################################### Touch log files
+touch_log
 ################################### Prefer IPv4 for apt
 ipv4_apt
 ################################### Upstart
