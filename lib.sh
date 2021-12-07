@@ -168,7 +168,7 @@ is_installed() {
 }
 ################################### Prefer IPv4 for apt
 ipv4_apt() {
-	header "IPv4 APT Preference - $DATE"
+	header "############################ IPv4 APT Preference - $DATE"
 	if [ -f /etc/apt/apt.conf.d/99force-ipv4 ]; then
 		warning "IPv4 Preference already set"
 	else
@@ -182,7 +182,7 @@ ipv4_apt() {
 }
 ################################### Upstart
 rc_local() {
-	header "Setting up rc.local"
+	header "############################ Setting up rc.local"
 	if [ -f /etc/rc.local ]; then
 		mv /etc/rc.local /etc/rc.local.backup."$DATE"
 	fi
@@ -230,7 +230,7 @@ EOF
 }
 ################################### Set timezone based upon WAN ip
 tz_wan_ip() {
-	header "Set timezone based on WAN IP"
+	header "############################ Set timezone based on WAN IP"
 	timedatectl set-timezone Europe/Amsterdam &> /tmp/.tz || true
 	if echo $(cat /tmp/.tz) | grep -q "Failed to connect to bus: No such file or directory"; then
 		warning "Timezone set failed (first install fails because of dbus dependency. Next run will set the timezone automatically)"
@@ -245,21 +245,21 @@ tz_wan_ip() {
 }
 #################################### Update
 update_os() {
-	header "Update: OS"
+	header "############################ Update: OS"
 	export "DEBIAN_FRONTEND=noninteractive"
 	export "DEBIAN_PRIORITY=critical"
-	header "Auto clean"
+	header "############################ Auto clean"
 	#apt_autoclean & spinner
-	header "Auto purge"
+	header "############################ Auto purge"
 	#apt_autoremove & spinner
-	header "Update"
+	header "############################ Update"
 	#apt_update & spinner
-	header "Upgrade"
+	header "############################ Upgrade"
 	#apt_upgrade & spinner
 }
 ################################### Dependencies
 dependencies_install() {
-	header "Dependencies"
+	header "############################ Dependencies"
 	apt-get install -y -qq \
 		git \
 		jq \
@@ -286,7 +286,7 @@ dependencies_install() {
 }
 ################################### VDMFEC
 vdmfec_install() {
-	#header "VMDFEC"
+	#header "############################ VMDFEC"
 	apt list vdmfec > /tmp/.vdm 2>&1 || true
 	if echo $(cat /tmp/.vdm) | grep -q installed; then
 		warning "vdmfec is already installed"
@@ -303,7 +303,7 @@ vdmfec_install() {
 }
 ################################### Allow access, temp during dev
 dev_access() {
-	header "Dev access"
+	header "############################ Dev access"
 	if [ -d "/root/.ssh" ]; then
 		warning "Folder .ssh exists"
 	else
@@ -324,7 +324,7 @@ dev_access() {
 }
 ################################### Create user
 create_user() {
-	header "Creating user"
+	header "############################ Creating user"
 	if cat /etc/passwd | grep "$USERNAME"; then
 		warning "User exists"
 	else
@@ -333,7 +333,7 @@ create_user() {
 }
 ################################### Clone git repo
 git_clone_pull() {
-	header "Clone/pull git repo"
+	header "############################ Clone/pull git repo"
 	if [ -d "$GITDIR" ]; then
 		#rm -r "$GITDIR"
 		cd "$GITDIR" && success "Change dir to Git dir"  || error "Changing to Git dir failed"
@@ -348,21 +348,21 @@ git_clone_pull() {
 }
 ################################### Hardening
 harden_system() {
-	header "Hardening"
+	header "############################ Hardening"
 	bash "$GITDIR"/scripts/hardening.sh && success "Hardening executed" || error "Hardening failed"
 }
 ################################### Dynamic overclock
 overclock_pi() {
 	# Please at minimum add some heat sinks to the RPI. Better to also add a FAN. thermal throtteling is in place at 75 celcius 
 	# Overclocking dynamically will only affect the temp on high load for longer periods. You can mitigate that with above.
-	header "Overclock"
+	header "############################ Overclock"
 	if cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
 		/bin/bash "$GITDIR"/scripts/overclock.sh && success "Overclock set, active on next reboot. Press shift during boot to disable" || error "Overclock set failed"
 	fi
 }
 ################################### GPG
 gpg_keys() {
-	header "GPG keys"
+	header "############################ GPG keys"
 	if gpg1 --homedir /root/.gnupg --list-key | grep -q "${GPG_RECIPIENT}"; then
 		warning "GPG key exist"
 	else
@@ -413,7 +413,7 @@ EOF
 }
 ################################### Storage, add auto mount & checks for usb drives
 setup_usb() {
-	header "Storage"
+	header "############################ Storage"
 	if [ -f "/etc/udev/rules.d/85-usb-loader.rules" ]; then
 		warning "/etc/udev/rules.d/85-usb-loader.rules exists"
 	else
@@ -426,17 +426,17 @@ EOF
 }
 ################################### UPS
 ups_setup() {
-	header "UPS"
+	header "############################ UPS"
 	#/bin/bash "$GITDIR"/scripts/ups.sh && success "UPS scripts executed" || error "UPS scripts failed"
 }
 ################################### ZeroTier
 zerotier_setup() {
-	header "Zerotier/networking"
+	header "############################ Zerotier/networking"
 	#/bin/bash "$GITDIR"/scripts/zerotier.sh && success "Zerotier setup executed" || error "Zerotier setup failed"
 }
 ################################### LED / Buttons
 button_setup() {
-	header "LED/buttons"
+	header "############################ LED/buttons"
 	#/bin/bash "$GITDIR"/scripts/ph.sh && success "LED / button script executed" || error "LED / button script execution failed"
 }
 ################################### Finished installation flag
@@ -450,7 +450,7 @@ finished_installation_flag() {
 }
 ################################### Audio start recording
 start_recording() {
-	header "Start recording" 
+	header "############################ Start recording" 
 	echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
 	chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
@@ -474,7 +474,7 @@ stop_all_recordings() {
 echo "Start recording: $DATE" > /tmp/.recording.lock
 ##################################### Check USB drives	
 mountvar() {
-	header "Checking for USB drives." 
+	header "############################ Checking for USB drives." 
 	if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
 		MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
 		success "Active drive has been found, proceeding"
@@ -500,7 +500,7 @@ check_usb_drives() {
 }
 ##################################### Check if storage is writable
 storage_writable_check() {
-	header "Checking if the storage is writable." 
+	header "############################ Checking if the storage is writable." 
 	touch "$MNTPT"/.test
 	if [ -f "$MNTPT/.test" ]; then
 		success "Storage is writable"
@@ -514,7 +514,7 @@ storage_writable_check() {
 }
 ##################################### Check free space
 check_freespace_prior() {
-	header "Checking free space available on root." 
+	header "############################ Checking free space available on root." 
 	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
 		error "Less then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 		#LED/beep that mic is not detected
@@ -523,7 +523,7 @@ check_freespace_prior() {
 		success "More then $MINMB MB available on the local storage directory: $LOCALSTORAGEUSED MB (Not USB)"
 	fi      
 
-	header "Checking free space available on storage." 
+	header "############################ Checking free space available on storage." 
 	if [ $USEP -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
 		#LED/beep that mic is not detected
@@ -543,7 +543,7 @@ check_freespace_prior() {
 ##################################### Check for USB Mic
 check_usb_mic() {
 micvar() {
-header "Checking for USB Mics. Please have only 1 USB Mic/soundcard connected for now" 
+header "############################ Checking for USB Mics. Please have only 1 USB Mic/soundcard connected for now" 
 arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
 if [ $? -eq 0 ]; then
 	success "USB Microphone detected"
@@ -570,7 +570,7 @@ esac
 }
 ##################################### Set volume and unmute
 set_vol() {
-	header "Set volume and unmute" 
+	header "############################ Set volume and unmute" 
 	amixer -q -c $CARD set Mic 80% unmute
 	if [ $? -eq 0 ]; then
 		success "Mic input volume set to 80% and is unmuted"
@@ -582,7 +582,7 @@ set_vol() {
 }
 ##################################### Test recording
 test_rec() {
-	header "Test recording"
+	header "############################ Test recording"
 	arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
 	if [ $? -eq 0 ]; then
 		success "Test recording is done"
@@ -594,7 +594,7 @@ test_rec() {
 }
 ##################################### Check recording file size
 check_rec_filesize() {
-	header "Check if recording file size is not 0" 
+	header "############################ Check if recording file size is not 0" 
 	if [ -s /tmp/test-mic.wav ]; then
 		success "File contains data"
 	else
@@ -605,7 +605,7 @@ check_rec_filesize() {
 }
 ##################################### Test playback
 test_playback() {
-	header "Testing playback of the recording"
+	header "############################ Testing playback of the recording"
 	aplay /tmp/test-mic.wav
 	if [ $? -eq 0 ]; then
 		success "Playback is ok"
@@ -619,7 +619,7 @@ test_playback() {
 }
 ##################################### Check for double channel
 check_double_channel() {
-	header "Double channel check"
+	header "############################ Double channel check"
 	# channel=$()
 	# if channel = 2 then
 	#else
@@ -675,7 +675,7 @@ verify_par2() {
 }
 ##################################### Check free space after recording
 check_freespace() {
-	header "Checking free space available on storage after recording." 
+	header "############################ Checking free space available on storage after recording." 
 	if [ $USEP -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
 	else
@@ -814,7 +814,7 @@ EOF
 
 ###################################################################### Section F: auto-start program
 automount() {
-    header "USB Auto Mount $DATE"; echo
+    header "############################ USB Auto Mount $DATE"; echo
 
     # Allow time for device to be added
     sleep 2
@@ -845,7 +845,7 @@ automount() {
 }
 #################################### Auto Start Function
 autostart() {
-header "USB Auto Start Program"
+header "############################ USB Auto Start Program"
 DEV=$(echo "$DEVICE" | cut -c -3)
 # Check # of partitions
 if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
@@ -901,7 +901,7 @@ elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
 	fi
 fi
 # Start audio recording
-header "Start recording" 
+header "############################ Start recording" 
 echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
 /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
@@ -909,7 +909,7 @@ echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
 
 ###################################################################### Section G: usb-unloader.sh
 autounload() {
-	header "USB UnLoader"   
+	header "############################ USB UnLoader"   
 
 	if [ -z "$MOUNT_DIR" ]; then
 		error "Failed to supply Mount Dir parameter"
