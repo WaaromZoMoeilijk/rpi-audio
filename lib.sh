@@ -472,7 +472,7 @@ stop_all_recordings() {
 }
 ##################################### In progress flag
 echo "Start recording: $DATE" > /tmp/.recording.lock
-##################################### Check USB drives	
+header "[ == Check USB drives	 == ]"
 mountvar() {
 	header "[ ==  Checking for USB drives. == ]"
 	if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
