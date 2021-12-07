@@ -50,8 +50,8 @@ if [ -d "$LOG_DIR" ]; then
     echo -e "|"  "${IYellow}Directory $LOG_DIR exists${Color_Off} |" >&2
 else
     mkdir -p "$LOG_DIR"
-    chown -R "$USER":"$USER" "$LOG_FILE"
-    echo -e "|"  "${IGreen}Directory $LOG_DIR created${Color_Off} |" >&2    
+    chown -R "$USER":"$USER" "$LOG_DIR"/{usb-*,audio-*}
+    echo -e "|"  "${IGreen}Directory $LOG_DIR created and permissions set${Color_Off} |" >&2    
 fi
 
 ###################################  Call load or unload script
@@ -68,7 +68,7 @@ if [ "$1" == "ADD" ]; then
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
     echo -e "|"  "${IBlue}==> Unmounting USB Device $DEVICE <=={Color_Off} |" >> "$LOG_FILE" >&2
-    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE_USBUNLOADER" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
+    "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE_UNLOADER" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1& #&& echo -e "|"  "${IGreen}Unmounting USB Device - Done$DEVICE${Color_Off} |" >> "$LOG_FILE" >&2 || echo -e "|"  "${IRed}Unmounting USB Device - Failed$DEVICE${Color_Off} |" >> "$LOG_FILE" 2>&1&
 fi
 
 exit 0
