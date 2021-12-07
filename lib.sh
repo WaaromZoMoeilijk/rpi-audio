@@ -96,12 +96,12 @@ debug_mode() {
 ###################################
 touch_log() {
 	mkdir -p $LOG_DIR
-	touch LOG_FILE
-	touch LOG_FILE_INSTALL
-	touch LOG_FILE_AUTOSTART
-	touch LOG_FILE_AUTOMOUNT
-	touch LOG_FILE_INITLOADER
-	touch LOG_FILE_UNLOADER
+	touch "$LOG_FILE"
+	touch "$LOG_FILE_INSTALL"
+	touch "$LOG_FILE_AUTOSTART"
+	touch "$LOG_FILE_AUTOMOUNT"
+	touch "$LOG_FILE_INITLOADER"
+	touch "$LOG_FILE_UNLOADER"
 }
 ################################### easy colored output
 success() {
