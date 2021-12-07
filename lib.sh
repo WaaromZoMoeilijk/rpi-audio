@@ -477,7 +477,6 @@ stop_all_recordings() {
 }
 ##################################### In progress flag
 echo "Start recording $DATE" > /tmp/.recording.lock
-header "[ == Check USB drives	 == ]"
 mountvar() {
 	header "[ ==  Checking for USB drives. == ]"
 	if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
@@ -494,13 +493,13 @@ check_usb_drives() {
 	# if 0 lines - exit
 	# if 1 lines - continue
 	# if any other number of lines - exit
-	case $usb_count in  
+	case $usb_count in
 	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following EXT4/FAT/NTFS" #LED/beep that mic is not detected && sleep 10 && reboot
-	    ;;  
+	    ;;
 	    1) mountvar
-	    ;;  
+	    ;;
 	    *) fatal "More then 1 USB storage device found, this is not supported yet"
-	    ;;  
+	    ;;
 	esac
 }
 ##################################### Check if storage is writable
@@ -713,7 +712,7 @@ backup_recordings() {
 sync_to_usb() {
 	mkdir -p "$MNTPT/Logs-$NAMEDATE"
 	rsync -aAX /var/tmp/dietpi/logs/ "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
-	rsync -aAX /var/log/{audio-recording.log,audio-install.log,usb-automount.log} "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
 }
 ##################################### Unmount device
 unmout_device() {
