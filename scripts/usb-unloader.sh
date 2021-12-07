@@ -24,19 +24,13 @@ MOUNT_DIR="$2"
 DEVICE="$3"  # USB device name (from kernel parameter passed from rule)
 AUTO_END="$4"  # Set to 0 if not wanting to shutdown pi, 1 otherwise
 
-################################### check for defined log file
-if [ -z "$LOG_FILE" ]; then
-    	echo ; echo -e "|" "${IRed}No log file${Color_Off} |" >&2
-	touch "$LOG_FILE"
-fi
-
 ################################### Unmount & log
-autounload >> "$LOG_FILE" 2>&1
+autounload >> "$LOG_FILE_AUTOUNLOAD" 2>&1
 
 ################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
-	echo ; echo -e "|" "${IBlue} --- USB Auto end script --- ${Color_Off} |" >&2 ; echo
-	echo "No commands setup for the auto end script" 
+	echo -e "|" "${IBlue} --- USB Auto end script --- ${Color_Off} |" >&2
+	warning "No commands setup for the auto end script" 
 	echo "###########  END usb-unloader.sh  $(date)   ############"
 fi
 
