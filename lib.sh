@@ -471,7 +471,7 @@ stop_all_recordings() {
 	fi
 }
 ##################################### In progress flag
-echo "Start recording: $DATE" > /tmp/.recording.lock
+echo "Start recording $DATE" > /tmp/.recording.lock
 header "[ == Check USB drives	 == ]"
 mountvar() {
 	header "[ ==  Checking for USB drives. == ]"
@@ -848,13 +848,13 @@ autostart() {
 header "[ ==  USB Auto Start Program == ]"
 DEV=$(echo "$DEVICE" | cut -c -3)
 # Check # of partitions
-if [[ $(grep -c "$DEV"'[1]' /proc/partitions) -gt 1 ]]; then
+if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
 	error "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
 	exit 1
-elif [[ $(grep -c "$DEV"'[1]' /proc/partitions) -eq 0 ]]; then
+elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
 	error "No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
 	exit 1
-elif [[ $(grep -c "$DEV"'[1]' /proc/partitions) -eq 1 ]]; then
+elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
 	success "1 partition detected, checking if its been used before"
 	# Check if drive is empty
 	if [ -f "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
