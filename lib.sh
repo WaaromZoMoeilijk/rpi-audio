@@ -539,31 +539,20 @@ check_freespace_prior() {
 }
 ##################################### Check for USB Mic
 check_usb_mic() {
-micvar() {
-header "[ ==  Checking for USB Mics. Please have only 1 USB Mic/soundcard connected for now == ]"
-arecord -q --list-devices | grep -m 1 -q 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' 
-if [ $? -eq 0 ]; then
-	success "USB Microphone detected"
-else
-	fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB"
-	#LED/beep that mic is not detected
-	# sleep 10 && reboot
-fi
-}
-
-# check for amount of MICs
-# checks lines count and invokes needed script or exit.
-# if 0 lines - exit
-# if 1 lines - continue
-# if any other number of lines - exit
-case $mic_count in  
-    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; sleep 10 && reboot
-    ;;  
-    1) micvar
-    ;;  
-    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; sleep 10 && reboot
-    ;;  
-esac
+	header "[ ==  Checking for USB Mics. Please have only 1 USB Mic/soundcard connected for now == ]"
+	# check for number of MICs
+	# checks lines count and invokes needed script or exit.
+	# if 0 lines - exit
+	# if 1 lines - continue
+	# if any other number of lines - exit
+	case $mic_count in  
+	    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; sleep 10 && reboot
+	    ;;  
+	    1) success "USB Microphone detected!"
+	    ;;  
+	    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; sleep 10 && reboot
+	    ;;  
+	esac
 }
 ##################################### Set volume and unmute
 set_vol() {
