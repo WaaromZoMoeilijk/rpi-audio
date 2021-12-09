@@ -107,19 +107,15 @@ touch_log() {
 success() {
 	echo -e "${IGreen} $* ${Color_Off}" >&2
 }
-
 warning() {
 	echo -e "${IYellow} $* ${Color_Off}" >&2
 }
-
 error() {
 	echo -e "${IRed} $* ${Color_Off}" >&2
 }
-
 header() {
 	echo -e "${IBlue} $* ${Color_Off}" >&2
 }
-
 fatal() {
 	echo -e "${IRed} $* ${Color_Off}" >&2
 	exit 1
@@ -141,19 +137,15 @@ is_mounted() {
 apt_install() {
 	apt-get install -y -qq -o=Dpkg::Use-Pty=0 && echo -e "|" "${IGreen}Packages install done${Color_Off} |" >&2 || echo -e "|" "${IRed}Packages install - Failed${Color_Off} |" >&2
 }
-###################################
 apt_update() {
 	apt-get update -qq -o=Dpkg::Use-Pty=0 && echo "Packages update done" || echo "Packages update - Failed"
 }
-###################################
 apt_upgrade() {
 	sudo -E apt-get -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold" full-upgrade -y -qq && echo "Packages upgrade done" || echo "Packages upgrade - Failed"
 }
-###################################
 apt_autoremove() {
 	apt-get autopurge -y -qq && echo "Packages autopurge done" || echo "Packages autopurge - Failed"
 }
-###################################
 apt_autoclean() {
 	apt-get -y autoclean -qq && echo "Packages clean done" || echo "Packages clean - Failed"
 }
