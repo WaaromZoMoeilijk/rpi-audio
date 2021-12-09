@@ -829,11 +829,11 @@ automount() {
 
     # mount the device base on USB file system
     case "$FILESYSTEM" in
-        vfat) systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs VFAT" || fatal "Failed mounting VFAT parition"
+        vfat) mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs VFAT" || fatal "Failed mounting VFAT parition"
               ;;
-        ntfs) systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs NTFS" || fatal "Failed mounting NTFS partition" 
+        ntfs) mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs NTFS" || fatal "Failed mounting NTFS partition" 
               ;;
-        ext*) systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs EXT" || fatal "Failed mounting EXT partition"
+        ext*) mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" # && success "Successfully mounted /dev/$DEVICE on $MOUNT_DIR/$DEVICE with fs EXT" || fatal "Failed mounting EXT partition"
               ;;	
      esac
 
