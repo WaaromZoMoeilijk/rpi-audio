@@ -861,15 +861,15 @@ autostart() {
                 warning "NOT EMPTY - Device has already been setup previously, importing" 
                 echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && success "Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active" || error "Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active"
                 chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Set permissions on $MOUNT_DIR/$DEVICE" || error "Set permissions on $MOUNT_DIR/$DEVICE failed"
-                if [ -f "$(ls -A "$MOUNT_DIR/$DEVICE"/DevGnupg)" ]; then
+                if [ -f "$MOUNT_DIR/$DEVICE"/DevGnupg ]; then
+                    warning "Temporary Dev GPG key folder is populated already, skipping" 
+                else
                     echo "Temporary Dev GPG key folder is empty, copying"
                     # Temporary export GPG keys to storage device.
                     mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
                     gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
                     gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
-                    gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
-                else
-                    warning "Temporary Dev GPG key folder is populated already, skipping" 
+                    gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"					
                 fi
             else
                 # No
