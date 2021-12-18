@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 # Index
 # Section A: Variables
 # 	  B: Install.sh
@@ -724,7 +724,7 @@ unmout_device() {
 		echo "temp disable of unmount for dev"
 		umount -l "/dev/$DEVICE" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
 		if [ $? -eq 0 ]; then
-			rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
+			rm -f "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
 		fi
 	else
 		success "Device not present in /etc/mtab"
@@ -827,9 +827,9 @@ automount() {
      esac
 
     is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount, please check the logs"
-#}
+}
 #################################### Auto Start Function
-#autostart() {
+autostart() {
     header "[ ==  USB Auto Start Program == ]"
     DEV=$(echo "$DEVICE" | cut -c -3)
     # Check # of partitions
