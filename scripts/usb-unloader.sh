@@ -23,10 +23,12 @@ LOG_FILE="$1"
 MOUNT_DIR="$2"
 
 ################################### Unmount & log
+echo >> "$LOG_FILE_UNLOADER"
 autounload >> "$LOG_FILE_UNLOADER" 2>&1
 
 ################################### End script
 if [[ "$AUTO_END" == "1" ]]; then
+	echo
 	echo -e "|" "${IBlue} --- USB Auto end script --- ${Color_Off} |" >&2
 	warning "No commands setup for the auto end script" 
 	echo "###########  END usb-unloader.sh  $(date)   ############"

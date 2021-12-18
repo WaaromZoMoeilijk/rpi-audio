@@ -57,10 +57,12 @@ if [ "$1" == "ADD" ]; then
         fatal "Rootdrive: $ROOTDRIVE == udev:$DEV"
         exit 1
     fi
-    header "Adding USB Device $DEVICE $DATE" >> "$LOG_FILE" >&2
+    echo >> "$LOG_FILE_INITLOADER"
+    header "Adding USB Device $DEVICE $DATE" >> "$LOG_FILE_INITLOADER" >&2
     "$GITDIR"/scripts/usb-automount.sh "$LOG_FILE_AUTOMOUNT" "$MOUNT_DIR" "$DEVICE" "$DEVTYPE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1&
 else
     DEVICE="$1"    # USB device name (kernel passed from udev rule)
+    echo >> "$LOG_FILE_INITLOADER"
     header "Unmounting USB Device $DEVICE $DATE" >> "$LOG_FILE" >&2
     "$GITDIR"/scripts/usb-unloader.sh "$LOG_FILE_UNLOADER" "$MOUNT_DIR" "$DEVICE" "$AUTO_START_FINISH" >> "$LOG_FILE_INITLOADER" 2>&1& 
 fi
