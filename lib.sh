@@ -809,6 +809,8 @@ automount() {
     is_mounted "$DEVICE" && warning "seems /dev/$DEVICE is already mounted"
 
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
+		systemctl disable "mnt-$DEVICE.mount"
+		systemctl daemon-reload
 		systemd-umount "$MOUNT_DIR/$DEVICE" 
 		sleep 1
 		umount "$MOUNT_DIR/$DEVICE" 
@@ -903,33 +905,25 @@ autostart() {
 ###################################################################### Section G: usb-unloader.sh
 autounload() {
 	header "[ ==  USB UnLoader == ]" 
-
-	if [ -z "$MOUNT_DIR" ]; then
-		fatal "Failed to supply Mount Dir parameter"
-	fi
-
-	if [ -z "$DEVICE" ]; then
-		fatal "Failed to supply DEVICE parameter"
-
-	fi
+	[ "$MOUNT_DIR" ] || fatal "Failed to supply Mount Dir parameter"
+	[ "$DEVICE" ] || fatal "Failed to supply DEVICE parameter"
 
 	if [ -d /mnt/"$DEVICE" ]; then
-		error "Directory /mnt/$DEVICE still exists, removing"
-		echo
-		umount -l "/mnt/$DEVICE" | sleep 1
-		rmdir "/mnt/$DEVICE"
-		if [ $? -eq 0 ]; then
-			success "Removed directory /mnt/$DEVICE"
-		else
-			error "Directory removal of /mnt/$DEVICE failed"
-		fi		
+		systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed"
+		sleep 1
+		systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed'
+		systemctl daemon-reload 
+		sleep 1
+		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounted failed"
+		sleep 1
+		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounted -l failed"
+		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed"
 	else
 		success "Directory /mnt/$DEVICE not present"
 	fi
 }
-
 ###################################################################### Section G: usb-unloader.sh
-
+ 
 ###################################################################### Section H: Bash colors
 print_text_in_color() {
 printf "%b%s%b\n" "$1" "$2" "$Color_Off"
