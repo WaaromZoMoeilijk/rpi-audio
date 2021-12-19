@@ -894,25 +894,26 @@ autostart() {
     /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
 ###################################################################### Section F: auto-start program
-
+ 
 ###################################################################### Section G: usb-unloader.sh
 autounload() {
 	header "[ ==  USB UnLoader == ]" 
 	[ "$MOUNT_DIR" ] || fatal "Failed to supply Mount Dir parameter"
 	[ "$DEVICE" ] || fatal "Failed to supply DEVICE parameter"
 
-	if [ -d /mnt/"$DEVICE" ]; then
+	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 		systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed"
-		sleep 1
 		systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed'
 		systemctl daemon-reload 
-		sleep 1
-		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounted failed"
-		sleep 1
-		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounted -l failed"
+		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed"
+		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed"
 		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed"
 		rmdir "$DEVICE"/sd*
-		success "Directory /mnt/$DEVICE not present"
+		if [ -d "$MOUNT_DIR/$DEVICE" ]; then
+			fatal "something went wrong unmounting please check the logs"
+		else
+			success "Unmount succeeded"
+		fi
 	fi
 }
 ###################################################################### Section G: usb-unloader.sh
