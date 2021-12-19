@@ -834,11 +834,9 @@ autostart() {
     DEV=$(echo "$DEVICE" | cut -c -3)
     # Check # of partitions
     if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
-        error "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
-        exit 1
+        fatal "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
     elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
-        error "No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
-        exit 1
+        fatal "No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
     elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
         success "1 partition detected, checking if its been used before"
         # Check if drive is empty
@@ -861,12 +859,12 @@ autostart() {
                 warning "NOT EMPTY - Device has already been setup previously, importing" 
                 echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && success "Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active" || error "Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active"
                 chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Set permissions on $MOUNT_DIR/$DEVICE" || error "Set permissions on $MOUNT_DIR/$DEVICE failed"
-                if [ -f "$MOUNT_DIR/$DEVICE"/DevGnupg ]; then
+                if [ -d "$MOUNT_DIR/$DEVICE"/DevGnupg ]; then
                     warning "Temporary Dev GPG key folder is populated already, skipping" 
                 else
                     echo "Temporary Dev GPG key folder is empty, copying"
                     # Temporary export GPG keys to storage device.
-                    mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
+                    mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder, probably exists already."
                     gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
                     gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
                     gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"					
@@ -874,11 +872,11 @@ autostart() {
             else
                 # No
                 echo
-                mkdir "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings"
+                mkdir "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings, probably exists already."
                 echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && success "Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active" || error "Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active"
                 chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Set permissions on $MOUNT_DIR/$DEVICE" || error "Set permissions on $MOUNT_DIR/$DEVICE failed"
                 # Temporary export GPG keys to storage device.
-                mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
+                mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder, probably exists already."
                 gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
                 gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
                 gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
