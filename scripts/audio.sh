@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181
 ##################################### Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 ##################################### Check for errors + debug code and abort if something isn't right
@@ -11,7 +12,7 @@ root_check
 ##################################### Stop all recordings just to be sure
 stop_all_recordings
 ##################################### In progress flag
-echo $(date) > /tmp/.recording.lock
+date > /tmp/.recording.lock
 ##################################### Check USB drives	
 check_usb_drives
 ##################################### Check if storage is writable

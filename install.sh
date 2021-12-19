@@ -1,13 +1,13 @@
 #!/bin/bash
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181
+#
 # Installation script for an automated audio recorder on a RaspberryPI4 running DietPI
 # Please edit the variable's in lib.sh to accomodate your needs
 # info@waaromzomoeilijk.nl
 # login root/dietpi //// raspberry
-
-# Version
-# v0.0.9
-# shellcheck disable=SC2034,SC1090,SC1091
-
+#
+# Version=v0.0.9
+#
 ################################### Variables & functions
 if ping -c 1 google.com; then
   source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait

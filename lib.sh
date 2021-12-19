@@ -1,6 +1,5 @@
 #!/bin/bash 
-# shellcheck disable=SC2034,SC1090,SC1091,SC2010
-
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181
 # Index
 # Section A: Variables
 # 	  B: Install.sh
@@ -52,6 +51,7 @@ CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{
 DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
 BLOCKSIZE=$(blockdev --getbsz "$DEV")
 USEP=$(df -h | grep "$DEV" | awk '{ print $5 }' | cut -d'%' -f1)
+USEM=$(df -h | grep "$DEV" | awk '{ print $3 }' | cut -d'%' -f1)
 LOCALSTORAGEUSED=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | awk '{print $4}' | sed 's|M||g')
 ################################### Network
 WANIP4=$(curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
@@ -170,12 +170,7 @@ ipv4_apt() {
 	if [ -f /etc/apt/apt.conf.d/99force-ipv4 ]; then
 		warning "IPv4 Preference already set"
 	else
-		echo 'Acquire::ForceIPv4 "true";' >> /etc/apt/apt.conf.d/99force-ipv4
-		if [ $? -eq 0 ]; then
-			success "Set IPv4 Preference done"
-		else
-			error "Set IPv4 Preference failed"
-		fi
+		echo 'Acquire::ForceIPv4 "true";' >> /etc/apt/apt.conf.d/99force-ipv4 && success "Set IPv4 Preference done" || error "Set IPv4 Preference failed"
 	fi
 }
 ################################### Upstart
@@ -230,15 +225,10 @@ EOF
 tz_wan_ip() {
 	header "[ ==  Set timezone based on WAN IP == ]"
 	timedatectl set-timezone Europe/Amsterdam &> /tmp/.tz || true
-	if echo $(cat /tmp/.tz) | grep -q "Failed to connect to bus: No such file or directory"; then
+	if "$(cat /tmp/.tz)" | grep -q "Failed to connect to bus: No such file or directory"; then
 		warning "Timezone set failed (first install fails because of dbus dependency. Next run will set the timezone automatically)"
 	else
-		curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone
-		if [ $? -eq 0 ]; then
-			success "Timezone set"
-		else
-			error "Timezone set failed"
-		fi
+		curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs timedatectl set-timezone && success "Timezone set" || error "Timezone set failed"
 	fi
 }
 #################################### Update
@@ -275,24 +265,19 @@ dependencies_install() {
 		ufw \
 		rsync \
 		par2 \
-		gnupg1	
-		if [ $? -eq 0 ]; then
-			success "Packages install done"
-		else
-			error "Packages install failed"
-		fi
+		gnupg1 && success "Packages install done" || error "Packages install failed"
 }
 ################################### VDMFEC
 vdmfec_install() {
 	header "[ ==  VMDFEC == ]"
 	apt list vdmfec > /tmp/.vdm 2>&1 || true
-	if echo $(cat /tmp/.vdm) | grep -q installed; then
+	if "$(cat /tmp/.vdm)" | grep -q installed; then
 		warning "vdmfec is already installed"
 	else
 		# 64Bit change for other arm distros
 		wget 'http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb' && dpkg -i 'vdmfec_1.0-2+b2_arm64.deb' && rm 'vdmfec_1.0-2+b2_arm64.deb'
 		apt list vdmfec > /tmp/.vdm 2>&1 || true
-		if echo $(cat /tmp/.vdm) | grep -q installed; then
+		if "$(cat /tmp/.vdm)" | grep -q installed; then
 			success "vdmfec install done"
 		else
 			error "vdmfec install failed"
@@ -312,12 +297,7 @@ dev_access() {
 	if cat /root/.ssh/authorized_keys | grep -q "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz"; then
 		warning "Public key exists already"
 	else
-		echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys
-		if [ $? -eq 0 ]; then
-			success "Pubkey added"
-		else
-			error "Pubkey appending failed"
-		fi
+		echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys && success "Pubkey added" || error "Pubkey appending failed"
 	fi
 }
 ################################### Create user
@@ -326,7 +306,7 @@ create_user() {
 	if cat /etc/passwd | grep "$USERNAME"; then
 		warning "User exists"
 	else
-		/usr/bin/sudo useradd -m -p $(openssl passwd -crypt "$PASSWORD") "$USERNAME" && success "User added" || error "User add failed"
+		/usr/bin/sudo useradd -m -p "$(openssl passwd -crypt "$PASSWORD")" "$USERNAME" && success "User added" || error "User add failed"
 	fi
 }
 ################################### Clone git repo
@@ -450,7 +430,7 @@ finished_installation_flag() {
 ################################### Audio start recording
 start_recording() {
 	header "[ ==  Start recording == ]"
-	echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
+	echo >> "$LOG_FILE_AUDIO" ; "$(date)" >> "$LOG_FILE_AUDIO"
 	chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
@@ -522,7 +502,7 @@ check_freespace_prior() {
 	fi      
 
 	header "[ ==  Checking free space available on storage. == ]"
-	if [ $USEP -ge "$MAXPCT" ]; then
+	if [ "$USEP" -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
 		#LED/beep that mic is not detected
 		# sleep 10 && reboot
@@ -530,12 +510,12 @@ check_freespace_prior() {
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
-	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
+	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
 		fatal "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
 		#LED/beep that mic is not detected
 		# sleep 10 && reboot
 	else
-		success "More then then $MINMB MB available on usb storage directory $USEMMB (USB)"
+		success "More then then $MINMB MB available on usb storage directory $USEM (USB)"
 	fi
 }
 ##################################### Check for USB Mic
@@ -558,26 +538,12 @@ check_usb_mic() {
 ##################################### Set volume and unmute
 set_vol() {
 	header "[ ==  Set volume and unmute == ]"
-	amixer -q -c $CARD set Mic 80% unmute
-	if [ $? -eq 0 ]; then
-		success "Mic input volume set to 80% and is unmuted"
-	else
-		fatal "Failed to set input volume"
-		#LED/beep that mic is not detected
-		# sleep 10 && reboot
-	fi
+	amixer -q -c "$CARD" set Mic 80% unmute && success "Mic input volume set to 80% and is unmuted" || fatal "Failed to set input volume" # ; LED/beep that mic is not detected
 }
 ##################################### Test recording
 test_rec() {
 	header "[ ==  Test recording == ]"
-	arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav 
-	if [ $? -eq 0 ]; then
-		success "Test recording is done"
-	else
-		fatal "Test recording failed"
-		#LED/beep that mic is not detected
-		# sleep 10 && reboot		
-	fi
+	arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav && success "Test recording is done" || fatal "Test recording failed" # ; LED/beep that mic is not detected		
 }
 ##################################### Check recording file size
 check_rec_filesize() {
@@ -617,7 +583,7 @@ record_audio() {
 	FILEDATE=$(date '+%Y-%m-%d_%H%M')
 	mkdir "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
 	arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
-	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
+	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
 	gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	     --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 		 --personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
@@ -655,7 +621,7 @@ create_par2() {
 }
 ###################################### Verify par2 files
 verify_par2() {
-	if [[ $(par2 verify "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | grep "All files are correct, repair is not required") ]]; then
+	if par2 verify "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | grep "All files are correct, repair is not required"; then
 		success "Par2 verified"
 	else
 		error "Par2 verification failed"
@@ -664,16 +630,16 @@ verify_par2() {
 ##################################### Check free space after recording
 check_freespace_post() {
 	header "[ ==  Checking free space available on storage after recording. == ]"
-	if [ $USEP -ge "$MAXPCT" ]; then
+	if [ "$USEP" -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
 	else
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
-	if [ $(df -Ph -BM $MNTPT | tail -1 | awk '{print $4}' | sed 's|M||g') -le "$MINMB" ]; then
-		error "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
+	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
+		error "Less then $MINMB MB available on usb storage directory $USEM (USB)"
 	else
-		success "More then then $MINMB MB available on usb storage directory $USEMMB (USB)"
+		success "More then then $MINMB MB available on usb storage directory $USEM (USB)"
 	fi
 }
 ##################################### Backup recordings ///// make this split
@@ -895,7 +861,7 @@ autostart() {
     fi
     # Start audio recording
     header "[ ==  Start recording == ]"
-    echo >> "$LOG_FILE_AUDIO" ; echo "$(date)" >> "$LOG_FILE_AUDIO"
+    echo; "$(date)" >> "$LOG_FILE_AUDIO"
     /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
 ###################################################################### Section F: auto-start program
@@ -908,7 +874,7 @@ autounload() {
 
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 		systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
-		systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed, probably did not exist'
+		systemctl disable "mnt-$DEVICE.mount" && success "systemctl disable mnt-$DEVICE.mount" || warning "systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
 		systemctl daemon-reload 
 		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
 		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
