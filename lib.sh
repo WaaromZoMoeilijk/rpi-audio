@@ -923,7 +923,7 @@ autounload() {
 	fi
 }
 ###################################################################### Section G: usb-unloader.sh
- 
+
 ###################################################################### Section H: Bash colors
 print_text_in_color() {
 printf "%b%s%b\n" "$1" "$2" "$Color_Off"
