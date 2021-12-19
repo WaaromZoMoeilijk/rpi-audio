@@ -1,4 +1,6 @@
 #!/bin/bash 
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010
+
 # Index
 # Section A: Variables
 # 	  B: Install.sh
@@ -23,6 +25,7 @@ GENRE="Recording" # Opusenc
 GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
 MAXPCT='95' # Max used % of / or USB storage used in order to proceed
+DECRYPT_WAV_IN_DEST_FOLDER_FOR_DEBUG="1" # 1 = On / 0 = off - Also perform the reverse recording flow to test the audio and decrypting proc.
 ###################################################################### Please don't change anything below unless you know what you are doing.
 ################################### Folders
 CONFIG="/boot/config.txt"
@@ -64,10 +67,8 @@ NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
-mic_count=$(echo -n "$OUTPUTMIC" | grep -c '^')
-usb_count=$(echo -n "$OUTPUTUSB" | grep -c '^')
-OUTPUTMIC=$(arecord --list-devices | grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC') # $1 Process Id
-OUTPUTUSB=$(find /mnt -iname '.active' | sed 's|/.active||g') # $1 Process Id
+mic_count=$(arecord --list-devices | grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | grep -c '^')
+usb_count=$(find /mnt -iname '.active' | sed 's|/.active||g' | grep -c '^')
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 ################################### Audio
 CARD=$(arecord -l | grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | awk '{print $2}' | sed 's|:||g')
@@ -224,7 +225,7 @@ EOF
 	else
 		error "Setting up rc.local failed"
 	fi
-}
+} 
 ################################### Set timezone based upon WAN ip
 tz_wan_ip() {
 	header "[ ==  Set timezone based on WAN IP == ]"
@@ -487,7 +488,7 @@ check_usb_drives() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $usb_count in
-	    0) fatal "No active drive has been found, please reinsert or format USB to one of the following EXT4/FAT/NTFS" #LED/beep that mic is not detected && sleep 10 && reboot
+	    0) fatal "No active USB storage device has been found, please reinsert and run again" #LED/beep that mic is not detected && sleep 10 && reboot
 	    ;;
 	    1) mountvar
 	    ;;
@@ -614,7 +615,7 @@ check_double_channel() {
 ##################################### Recording flow: audio-out | opusenc | gpg1 | vdmfec | split/tee
 record_audio() {
 	FILEDATE=$(date '+%Y-%m-%d_%H%M')
-	mkdir -p "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
+	mkdir "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
 	arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date $(date +%Y-%M-%d) --album "$ALBUM" --genre "$GENRE" - - | \
 	gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
@@ -631,9 +632,10 @@ record_audio() {
 		error "Something went wrong during the recording flow"
 	fi
 
-	# Reverse Pipe
-	vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | \
-	gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
+	if [ "$DECRYPT_WAV_IN_DEST_FOLDER_FOR_DEBUG" == "1" ]; then
+		# Reverse Pipe
+		vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
+	fi
 
 	# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
 	#pkill -2 'arecord'
@@ -644,7 +646,7 @@ record_audio() {
 	# GPG additions
 	#--passphrase-file file reads the passphrase from a file
 	#--passphrase string uses string as the passphrase
-	# Youll also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
+	# For production we also want to add --batch, which prevents gpg from using interactive commands, and --no-tty, which makes sure that the terminal isn't used for any output.
 }
 ###################################### Create par2 files
 create_par2() {
@@ -660,7 +662,7 @@ verify_par2() {
 	fi
 }
 ##################################### Check free space after recording
-check_freespace() {
+check_freespace_post() {
 	header "[ ==  Checking free space available on storage after recording. == ]"
 	if [ $USEP -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
@@ -806,18 +808,18 @@ automount() {
     sleep 2
  
 	# Fix, disable leftover systemd mounts
-	systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed, probably did not exist'
-	systemctl daemon-reload 
+	systemctl disable "mnt-$DEVICE.mount" && success "systemctl disable mnt-$DEVICE.mount" || warning "systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
+	systemctl daemon-reload && success "systemctl daemon-reload" || warning "systemctl daemon-reload"
+	systemctl reset-failed && success "systemctl reset-failed" || warning "systemctl reset-failed"
 
-	# Check and clear old mountpoint
+	# Check old mountpoint
     is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
 
+    # test mountpoint - it shouldn't exist
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 		rmdir "$MOUNT_DIR/$DEVICE"  
 	fi
 
-
-    # test mountpoint - it shouldn't exist
     [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "It seems mountpoint $MOUNT_DIR/$DEVICE already exists"
 
     # make the mountpoint
@@ -828,15 +830,13 @@ automount() {
 
     # mount the device base on USB file system
     case "$FILESYSTEM" in
-        vfat) systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting VFAT parition"
+        vfat) systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Mounted VFAT partition" || fatal "Failed mounting VFAT parition"
               ;;
-        ntfs) systemd-mount -t auto -o uid="$USER",gid="$USER",locale=en_US.UTF-8 "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting NTFS partition" 
+        ntfs) fatal "NTFS is currently not supported, please reformat to FAT after a backup" #systemd-mount -t auto -o uid="$USER",gid="$USER",errors=continue "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting NTFS partition" 
               ;;
-        ext*) systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting EXT partition"
+        ext*) systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Mounted EXT partition" || fatal "Failed mounting EXT partition"
               ;;	
      esac
-
-    is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount, please check the logs"
 } 
 #################################### Auto Start Function
 autostart() {
@@ -913,7 +913,7 @@ autounload() {
 		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
 		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
 		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed, probably did not exist"
-		rmdir "$DEVICE"/sd*
+		rmdir "$MOUNT_DIR"/sd*
 		if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 			fatal "something went wrong unmounting please check the logs"
 		else
