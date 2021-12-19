@@ -805,7 +805,17 @@ automount() {
     # Allow time for device to be added
     sleep 2
 
-    is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
+	# Check and clear old mountpoint
+    is_mounted "$DEVICE" && warning "seems /dev/$DEVICE is already mounted"
+
+	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
+		systemd-umount "$MOUNT_DIR/$DEVICE" 
+		sleep 1
+		umount "$MOUNT_DIR/$DEVICE" 
+		sleep 1
+		umount -l "$MOUNT_DIR/$DEVICE" 
+		rmdir "$MOUNT_DIR/$DEVICE"  
+	fi
 
     # test mountpoint - it shouldn't exist
     [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "It seems mountpoint $MOUNT_DIR/$DEVICE already exists"
