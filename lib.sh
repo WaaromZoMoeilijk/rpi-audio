@@ -806,16 +806,9 @@ automount() {
     sleep 2
 
 	# Check and clear old mountpoint
-    is_mounted "$DEVICE" && warning "seems /dev/$DEVICE is already mounted"
+    is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
 
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
-		systemctl disable "mnt-$DEVICE.mount"
-		systemctl daemon-reload
-		systemd-umount "$MOUNT_DIR/$DEVICE" 
-		sleep 1
-		umount "$MOUNT_DIR/$DEVICE" 
-		sleep 1
-		umount -l "$MOUNT_DIR/$DEVICE" 
 		rmdir "$MOUNT_DIR/$DEVICE"  
 	fi
 
@@ -839,7 +832,7 @@ automount() {
      esac
 
     is_mounted "$DEVICE" && success "Mount OK" || fatal "Unable to mount, please check the logs"
-}
+} 
 #################################### Auto Start Function
 autostart() {
     header "[ ==  USB Auto Start Program == ]"
@@ -918,7 +911,7 @@ autounload() {
 		sleep 1
 		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounted -l failed"
 		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed"
-	else
+		rmdir "$DEVICE"/sd*
 		success "Directory /mnt/$DEVICE not present"
 	fi
 }
