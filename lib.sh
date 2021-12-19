@@ -804,6 +804,10 @@ automount() {
 
     # Allow time for device to be added
     sleep 2
+ 
+	# Fix, disable leftover systemd mounts
+	systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed, probably did not exist'
+	systemctl daemon-reload 
 
 	# Check and clear old mountpoint
     is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
@@ -811,6 +815,7 @@ automount() {
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 		rmdir "$MOUNT_DIR/$DEVICE"  
 	fi
+
 
     # test mountpoint - it shouldn't exist
     [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "It seems mountpoint $MOUNT_DIR/$DEVICE already exists"
@@ -894,7 +899,7 @@ autostart() {
     /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
 ###################################################################### Section F: auto-start program
- 
+
 ###################################################################### Section G: usb-unloader.sh
 autounload() {
 	header "[ ==  USB UnLoader == ]" 
@@ -902,12 +907,12 @@ autounload() {
 	[ "$DEVICE" ] || fatal "Failed to supply DEVICE parameter"
 
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
-		systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed"
-		systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed'
+		systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
+		systemctl disable "mnt-$DEVICE.mount" && success 'systemctl disable "mnt-$DEVICE.mount"' || warning 'systemctl disable "mnt-$DEVICE.mount" failed, probably did not exist'
 		systemctl daemon-reload 
-		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed"
-		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed"
-		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed"
+		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
+		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
+		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed, probably did not exist"
 		rmdir "$DEVICE"/sd*
 		if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 			fatal "something went wrong unmounting please check the logs"
