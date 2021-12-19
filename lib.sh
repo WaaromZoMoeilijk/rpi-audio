@@ -131,7 +131,7 @@ spinner() {
 }
 ###################################################################### Section B: install.sh
 is_mounted() {
-	grep -q "$1" /etc/mtab
+	grep "$1" /etc/mtab
 }
 ###################################
 apt_install() {
@@ -845,11 +845,11 @@ autostart() {
         if [ -f "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
             # Empty
             warning "EMPTY"
-            mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings"
+            mkdir "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings"
             echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && success "Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active" || error "Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active"
             chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Set permissions on $MOUNT_DIR/$DEVICE" || error "Set permissions on $MOUNT_DIR/$DEVICE failed"
             # Temporary export GPG keys to storage device.
-            mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
+            mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
             gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
             gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
             gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
@@ -866,7 +866,7 @@ autostart() {
                 else
                     echo "Temporary Dev GPG key folder is empty, copying"
                     # Temporary export GPG keys to storage device.
-                    mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
+                    mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
                     gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
                     gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
                     gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"					
@@ -874,11 +874,11 @@ autostart() {
             else
                 # No
                 echo
-                mkdir -p "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings"
+                mkdir "$MOUNT_DIR/$DEVICE/Recordings" && success "Created $MOUNT_DIR/$DEVICE/Recordings" || error "Failed to create $MOUNT_DIR/$DEVICE/Recordings"
                 echo "$MOUNT_DIR/$DEVICE $DEVID $DATE" >> "$MOUNT_DIR/$DEVICE/Recordings/.active" && success "Written device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active" || error "Failed to write device ID, mountpoint and date to $MOUNT_DIR/$DEVICE/Recordings/.active"
                 chown -R "$USER":"$USER" "$MOUNT_DIR/$DEVICE" && success "Set permissions on $MOUNT_DIR/$DEVICE" || error "Set permissions on $MOUNT_DIR/$DEVICE failed"
                 # Temporary export GPG keys to storage device.
-                mkdir -p "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
+                mkdir "$MOUNT_DIR/$DEVICE/DevGnupg" && success "Created temp dev gnupg folder" || error "Failed to create temp dev gnupg folder"
                 gpg1 --export-ownertrust > "$MOUNT_DIR/$DEVICE/DevGnupg/otrust.txt"
                 gpg1 -a --export-secret-keys > "$MOUNT_DIR/$DEVICE/DevGnupg/privatekey.asc"
                 gpg1 -a --export > "$MOUNT_DIR/$DEVICE/DevGnupg/publickey.asc"
@@ -897,13 +897,12 @@ autounload() {
 	header "[ ==  USB UnLoader == ]" 
 
 	if [ -z "$MOUNT_DIR" ]; then
-		error "Failed to supply Mount Dir parameter"
-		exit 1
+		fatal "Failed to supply Mount Dir parameter"
 	fi
 
 	if [ -z "$DEVICE" ]; then
-		error "Failed to supply DEVICE parameter"
-		exit 1
+		fatal "Failed to supply DEVICE parameter"
+
 	fi
 
 	if [ -d /mnt/"$DEVICE" ]; then
