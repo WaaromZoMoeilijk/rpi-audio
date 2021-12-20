@@ -12,7 +12,7 @@
 
 #### Flash base image to SSD / SDCard
 - [Download](https://www.balena.io/etcher/) and install Balena Etcher.
-- Download client RaspberryPI4 (8GB) (ARMv6) | [Download client RaspberryPI4 (8GB) (ARMv8) (64Bit)](https://nextcloud.waaromzomoeilijk.nl/s/rkWaBseReC3pxNf)
+- Download client RaspberryPI4 (ARMv6) | [Download client RaspberryPI4 (ARMv8) (64Bit)](https://nextcloud.waaromzomoeilijk.nl/s/rkWaBseReC3pxNf)
 - Flash the image to an SD Card / SSD (recommended).
 
 #### Enable SSD boot (most recently purchased RPI4's will already have this enabled)

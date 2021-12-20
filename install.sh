@@ -13,6 +13,8 @@ if ping -c 1 google.com; then
   source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 else
   source /opt/rpi-audio/lib.sh
+  start_recording
+  exit 0
 fi
 
 # For local deployments please # comment all the lines in the above section

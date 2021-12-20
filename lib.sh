@@ -131,10 +131,6 @@ spinner() {
 	#echo ']'
 }
 ###################################################################### Section B: install.sh
-wan_access() {
-	
-}
-}
 is_mounted() {
 	grep "$1" /etc/mtab
 }
