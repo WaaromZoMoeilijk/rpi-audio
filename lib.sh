@@ -131,6 +131,10 @@ spinner() {
 	#echo ']'
 }
 ###################################################################### Section B: install.sh
+wan_access() {
+	
+}
+}
 is_mounted() {
 	grep "$1" /etc/mtab
 }
@@ -430,7 +434,7 @@ finished_installation_flag() {
 ################################### Audio start recording
 start_recording() {
 	header "[ ==  Start recording == ]"
-	echo >> "$LOG_FILE_AUDIO" ; "$(date)" >> "$LOG_FILE_AUDIO"
+	echo "" >> "$LOG_FILE_AUDIO" ; date >> "$LOG_FILE_AUDIO"
 	chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
