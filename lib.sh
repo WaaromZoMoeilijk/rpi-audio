@@ -46,16 +46,16 @@ AUTO_START="$5"
 AUTO_END="$4"
 ################################### System
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
-#ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | /usr/bin/grep "$(/usr/bin/cat /etc/fstab | /usr/bin/grep ' / ' | /usr/bin/awk '{print $1}' | sed 's|PARTUUID=||g')" | /usr/bin/awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
-#DEV=$(/usr/bin/lshw -short -c disk | /usr/bin/grep -v "$ROOTDRIVE" | /usr/bin/awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
-DEV=$(/usr/bin/lshw -short -c disk | /usr/bin/awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
+#ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | /usr/bin/grep "$(/usr/bin/cat /etc/fstab | /usr/bin/grep ' / ' | /usr/bin/awk '{print $1}' | /usr/bin/sed 's|PARTUUID=||g')" | /usr/bin/awk '{print $11}' | /usr/bin/sed "s|../../||g" | /usr/bin/sed 's/[0-9]*//g')
+#DEV=$(/usr/bin/lshw -short -c disk | /usr/bin/grep -v "$ROOTDRIVE" | /usr/bin/awk '{print $2}' | /usr/bin/sed 's|path||g' | /usr/bin/sed -e '/^$/d')
+DEV=$(/usr/bin/lshw -short -c disk | /usr/bin/awk '{print $2}' | /usr/bin/sed 's|path||g' | /usr/bin/sed -e '/^$/d')
 #CHECKDRIVESIZE=$(/usr/bin/lshw -short -c disk | /usr/bin/grep -v "$ROOTDRIVE" | tail -n+3 | /usr/bin/awk '{print $2,$4}')
 CHECKDRIVESIZE=$(/usr/bin/lshw -short -c disk | tail -n+3 | /usr/bin/awk '{print $2,$4}')
-DEVID=$(ls -la /dev/disk/by-id/ | /usr/bin/grep "$DEV" | /usr/bin/grep -v 'part' | /usr/bin/awk '{print $9}' | sed 's|:0||g')
+DEVID=$(ls -la /dev/disk/by-id/ | /usr/bin/grep "$DEV" | /usr/bin/grep -v 'part' | /usr/bin/awk '{print $9}' | /usr/bin/sed 's|:0||g')
 BLOCKSIZE=$(blockdev --getbsz "$DEV")
 USEP=$(df -h | /usr/bin/grep "$DEV" | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'%' -f1)
 USEM=$(df -h | /usr/bin/grep "$DEV" | /usr/bin/awk '{ print $3 }' | /usr/bin/cut -d'%' -f1)
-LOCALSTORAGEUSED=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')
+LOCALSTORAGEUSED=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | /usr/bin/awk '{print $4}' | /usr/bin/sed 's|M||g')
 ################################### Network
 WANIP4=$(/usr/bin/curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
 GATEWAY=$(ip route | /usr/bin/grep default | /usr/bin/awk '{print $3}')
@@ -71,10 +71,10 @@ FILEDATE=$(/usr/bin/date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
 mic_count=$(/usr/bin/arecord --list-devices | /usr/bin/grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/grep -c '^')
-usb_count=$(find /mnt -iname '.active' | sed 's|/.active||g' | /usr/bin/grep -c '^')
+usb_count=$(find /mnt -iname '.active' | /usr/bin/sed 's|/.active||g' | /usr/bin/grep -c '^')
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 ################################### Audio
-CARD=$(/usr/bin/arecord -l | /usr/bin/grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/awk '{print $2}' | sed 's|:||g')
+CARD=$(/usr/bin/arecord -l | /usr/bin/grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/awk '{print $2}' | /usr/bin/sed 's|:||g')
 ################################### Functions
 is_root() {
 	if [[ "$EUID" -ne 0 ]];	then
@@ -320,13 +320,14 @@ git_clone_pull() {
 	if [ -d "$GITDIR" ]; then
 		#/usr/bin/rm -r "$GITDIR"
 		cd "$GITDIR" && success "Change dir to Git dir"  || error "Changing to Git dir failed"
+		/usr/bin/git config pull.rebase false
 		/usr/bin/git pull && success "Git repository updated"  || error "Git repository update failed"
 	else
 		/usr/bin/git clone "$REPO" "$GITDIR" && success "Git repository cloned" || error "Git repository failed to clone"
 		/usr/bin/chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	fi
 	
-	sed -i "s|source.*|source $GITDIR/lib.sh|g" "$GITDIR"/scripts/*.sh # Fix source in other scripts and speed up by not using WAN source files.
+	/usr/bin/sed -i "s|source.*|source $GITDIR/lib.sh|g" "$GITDIR"/scripts/*.sh # Fix source in other scripts and speed up by not using WAN source files.
 	/usr/bin/mkdir -p "$LOCALSTORAGE"
 }
 ################################### Hardening
@@ -429,7 +430,7 @@ finished_installation_flag() {
 		/usr/bin/echo "Install script finished on $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
 	else
 		/usr/bin/echo "Install script finished on $(date)" >> "$GITDIR"/.rpi-audio-install.sh-finished
-		reboot
+		/usr/sbin/reboot 
 	fi
 }
 ################################### Audio start recording
@@ -438,15 +439,15 @@ start_recording() {
 	/usr/bin/echo "" >> "$LOG_FILE_AUDIO" ; /usr/bin/date >> "$LOG_FILE_AUDIO"
 	/usr/bin/chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
-}
+} 
 ###################################################################### Section B: install.sh
 
 ###################################################################### Section C: audio.sh
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
 	if /usr/bin/pgrep 'arecord'; then
-		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" 
-		#LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
+		/usr/bin/pkill  -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" 
+		#LED/beep that mic is not detected ; /usr/bin/sleep 10 && /usr/sbin/reboot 
 		/usr/bin/sleep 2
 	fi
 
@@ -458,8 +459,8 @@ stop_all_recordings() {
 /usr/bin/echo "Start recording $DATE" > /tmp/.recording.lock
 mountvar() {
 	header "[ ==  Checking for USB drives. == ]"
-	if [[ $(find /mnt -iname '.active' | sed 's|/.active||g') ]]; then
-		MNTPT=$(find /mnt -iname '.active' | sed 's|/.active||g')
+	if [[ $(find /mnt -iname '.active' | /usr/bin/sed 's|/.active||g') ]]; then
+		MNTPT=$(find /mnt -iname '.active' | /usr/bin/sed 's|/.active||g')
 		success "Active drive has been found, proceeding"
 	else
 		warning "No active drive has been found, setting one up."
@@ -473,7 +474,7 @@ check_usb_drives() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $usb_count in
-	    0) fatal "No active USB storage device has been found, please reinsert and run again" #LED/beep that mic is not detected && /usr/bin/sleep 10 && reboot
+	    0) fatal "No active USB storage device has been found, please reinsert and run again" #LED/beep that mic is not detected && /usr/bin/sleep 10 && /usr/sbin/reboot 
 	    ;;
 	    1) mountvar
 	    ;;
@@ -491,7 +492,7 @@ storage_writable_check() {
 	else
 		error "Storage is not writable, exiting."
 		#LED/beep that mic is not detected
-		# /usr/bin/sleep 10 && reboot
+		# /usr/bin/sleep 10 && /usr/sbin/reboot 
 		exit 1
 	fi
 }
@@ -501,7 +502,7 @@ check_freespace_prior() {
 	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
 		error "Less then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 		#LED/beep that mic is not detected
-		# /usr/bin/sleep 10 && reboot		
+		# /usr/bin/sleep 10 && /usr/sbin/reboot 		
 	else
 		success "More then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 	fi      
@@ -510,15 +511,15 @@ check_freespace_prior() {
 	if [ "$USEP" -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
 		#LED/beep that mic is not detected
-		# /usr/bin/sleep 10 && reboot
+		# /usr/bin/sleep 10 && /usr/sbin/reboot 
 	else
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
-	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
+	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | /usr/bin/sed 's|M||g')" -le "$MINMB" ]; then
 		fatal "Less then $MINMB MB available on usb storage directory: used: $USEM (USB)"
 		#LED/beep that mic is not detected
-		# /usr/bin/sleep 10 && reboot
+		# /usr/bin/sleep 10 && /usr/sbin/reboot 
 	else
 		success "More then $MINMB MB available on usb storage directory, used: $USEM (USB)"
 	fi
@@ -532,11 +533,11 @@ check_usb_mic() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $mic_count in  
-	    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
+	    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && /usr/sbin/reboot 
 	    ;;  
 	    1) success "USB Microphone detected!"
 	    ;;  
-	    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
+	    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && /usr/sbin/reboot 
 	    ;;  
 	esac
 }
@@ -558,7 +559,7 @@ check_rec_filesize() {
 	else
 		error "File is empty! Unable to record."
 		#LED/beep that mic is not detected
-		# /usr/bin/sleep 10 && reboot		
+		# /usr/bin/sleep 10 && /usr/sbin/reboot 		
 	fi
 }
 ##################################### Test playback
@@ -572,7 +573,7 @@ test_playback() {
 		error "Playback failed"
 		/usr/bin/rm -r /tmp/test-mic.wav\
 		#LED/beep that mic is not detected
-		# /usr/bin/sleep 10 && reboot		
+		# /usr/bin/sleep 10 && /usr/sbin/reboot 		
 	fi
 }
 ##################################### Check for double channel
@@ -609,7 +610,7 @@ record_audio() {
 	fi
 
 	# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
-	#pkill -2 'arecord'
+	#/usr/bin/pkill  -2 'arecord'
 
 	# Error finding card
 	# ALSA lib pcm_hw.c:1829:(_snd_pcm_hw_open) Invalid value for card
@@ -641,7 +642,7 @@ check_freespace_post() {
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
-	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
+	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | /usr/bin/sed 's|M||g')" -le "$MINMB" ]; then
 		error "Less then $MINMB MB available on usb storage directory $USEM (USB)"
 	else
 		success "More then then $MINMB MB available on usb storage directory $USEM (USB)"
@@ -672,7 +673,7 @@ sync_to_usb() {
 }
 ##################################### Unmount device
 unmount_device() {
-	MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
+	MNTPTR=$(find /mnt -iname '.active' | /usr/bin/sed 's|/Recordings/.active||g')
 	if [ -d "$MNTPTR" ]; then
 		sync		
 		/usr/bin/systemd-umount "$MNTPTR" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
@@ -761,15 +762,15 @@ overclock_rpi() {
 
 	CONFIG="/boot/config.txt"
 
-	sed -i '/arm_freq=/d' "$CONFIG"
-	sed -i '/arm_freq_min=/d' "$CONFIG"
-	sed -i '/over_voltage=/d' "$CONFIG"
-	sed -i '/over_voltage_min=/d' "$CONFIG"
-	sed -i '/temp_limit=/d' "$CONFIG"
-	sed -i '/initial_turbo=/d' "$CONFIG"
-	sed -i '/core_freq/d' "$CONFIG"
-	sed -i '/sdram_freq/d' "$CONFIG"
-	sed -i '/-------Overclock-------/d' "$CONFIG"
+	/usr/bin/sed -i '/arm_freq=/d' "$CONFIG"
+	/usr/bin/sed -i '/arm_freq_min=/d' "$CONFIG"
+	/usr/bin/sed -i '/over_voltage=/d' "$CONFIG"
+	/usr/bin/sed -i '/over_voltage_min=/d' "$CONFIG"
+	/usr/bin/sed -i '/temp_limit=/d' "$CONFIG"
+	/usr/bin/sed -i '/initial_turbo=/d' "$CONFIG"
+	/usr/bin/sed -i '/core_freq/d' "$CONFIG"
+	/usr/bin/sed -i '/sdram_freq/d' "$CONFIG"
+	/usr/bin/sed -i '/-------Overclock-------/d' "$CONFIG"
 
 # Dynamic overclock config
 /usr/bin/cat >> "$CONFIG" <<EOF
