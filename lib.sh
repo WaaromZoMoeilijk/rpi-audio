@@ -67,8 +67,7 @@ REPO="https://github.com/WaaromZoMoeilijk/rpi-audio"
 ################################### Misc
 DATE=$(/usr/bin/date '+%Y-%m-%d - %H:%M:%S')
 FOLDERDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M')
-NAMEDATE=$(/usr/bin/date '+%Y-%m-%d_%H:%M:%S')
-FILEDATE=$(/usr/bin/date +%Y-%m-%d_%H:%M:%S)
+FILEDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M%S')
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
 mic_count=$(/usr/bin/arecord --list-devices | /usr/bin/grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/grep -c '^')
@@ -585,21 +584,20 @@ check_double_channel() {
 	#else
 	#fi
 }
-##################################### Recording flow: audio-out | opusenc | /usr/bin/gpg1 | vdmfec | split/tee
+##################################### Recording flow: audio-out | /usr/bin/opusenc | /usr/bin/gpg1 | vdmfec | split/tee
 record_audio() {
-	FILEDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M')
-	/usr/bin/mkdir "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')" && success "Created $MNTPT/$(/usr/bin/date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(/usr/bin/date '+%Y-%m-%d')"
-	/usr/bin/arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
-	opusenc --quiet --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(/usr/bin/date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
-	/usr/bin/gpg1 --no-tty --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+	/usr/bin/mkdir "$MNTPT/$FOLDERDATE" && success "Created $MNTPT/$FOLDERDATE" || error "Failed to create $MNTPT/$FOLDERDATE"
+	/usr/bin/arecord -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
+	/usr/bin/opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(/usr/bin/date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
+	/usr/bin/gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	     --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 		 --personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
-	vdmfec -b "$BLOCKSIZE" -n 32 -k 24 | \
-	tee "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
+	vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
+	tee "$MNTPT/$FOLDERDATE/$FILEDATE.wav.gpg" 
 	clear
 	/usr/bin/sleep 3
 
-	if [ -f "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" ]; then
+	if [ -f "$MNTPT/$FOLDERDATE/$FILEDATE.wav.gpg" ]; then
 		success "Recording is done"
 	else
 		error "Something went wrong during the recording flow"
@@ -607,7 +605,7 @@ record_audio() {
 
 	if [ "$DECRYPT_WAV_IN_DEST_FOLDER_FOR_DEBUG" == "1" ]; then
 		# Reverse Pipe
-		vdmfec -d -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | /usr/bin/gpg1 --no-tty --homedir /root/.gnupg --decrypt > "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
+		vdmfec -v -d -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$FOLDERDATE/$FILEDATE.wav.gpg" | /usr/bin/gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$FOLDERDATE/$FILEDATE.decrypted.wav"
 	fi
 
 	# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
@@ -624,11 +622,11 @@ record_audio() {
 ###################################### Create par2 files
 create_par2() {
 	# Implement a last modified file check for the latest recording only
-	par2 create "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
+	par2 create "$MNTPT/$FOLDERDATE/$FILEDATE.wav.gpg.par2" "$MNTPT/$FOLDERDATE/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
 }
 ###################################### Verify par2 files
 verify_par2() {
-	if par2 verify "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | /usr/bin/grep "All files are correct, repair is not required"; then
+	if par2 verify "$MNTPT/$FOLDERDATE/$FILEDATE.wav.gpg.par2" | /usr/bin/grep "All files are correct, repair is not required"; then
 		success "Par2 verified"
 	else
 		error "Par2 verification failed"
