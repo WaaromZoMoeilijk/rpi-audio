@@ -177,9 +177,9 @@ ipv4_apt() {
 ################################### Upstart
 rc_local() {
 	header "[ ==  Setting up rc.local == ]"
-	if [ -f /etc/rc.local ]; then
-		mv /etc/rc.local /etc/rc.local.backup."$DATE"
-	fi
+	#if [ -f /etc/rc.local ]; then
+	#	mv /etc/rc.local /etc/rc.local.backup."$DATE"
+	#fi
 
 	/usr/bin/systemctl disable rc-local.service || true
 	/usr/bin/rm /etc/systemd/system/rc-local.service || true
@@ -439,7 +439,7 @@ start_recording() {
 	/usr/bin/echo "" >> "$LOG_FILE_AUDIO" ; /usr/bin/date >> "$LOG_FILE_AUDIO"
 	/usr/bin/chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
-} 
+}
 ###################################################################### Section B: install.sh
 
 ###################################################################### Section C: audio.sh
@@ -661,15 +661,17 @@ backup_recordings() {
 		error "Less then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 	else
 		success "More then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
-		rsync -aAXHv "$MNTPT"/ "$LOCALSTORAGE"/
+		/usr/bin/rsync -aAXHv "$MNTPT/" "$LOCALSTORAGE/"
 	fi      
 }
 ##################################### Sync logs to USB
 sync_to_usb() {
 	/usr/bin/mkdir -p "$MNTPT/Logs/OS"	
 	/usr/bin/mkdir -p "$MNTPT/Logs/$NAMEDATE"
-	rsync -aAX --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors, possible with rsync"
-	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs/$NAMEDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors, possible with rsync"
+	rsync -aAX --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors - USB"
+	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs/$NAMEDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
+	# Ext4 linux partition for use on other linux systems, fix
+	/usr/bin/chmod -R 777 "$MNTPT"
 }
 ##################################### Unmount device
 unmount_device() {
