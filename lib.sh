@@ -1,5 +1,5 @@
 #!/bin/bash 
-# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181,SC2129,SC2012
 # Index
 # Section A: Variables
 # 	  B: Install.sh
@@ -25,6 +25,8 @@ GPG_RECIPIENT="recorder@waaromzomoeilijk.nl"
 MINMB='2000' # Minimum storage capacity of / or USB storage in order to proceed
 MAXPCT='95' # Max used % of / or USB storage used in order to proceed
 DECRYPT_WAV_IN_DEST_FOLDER_FOR_DEBUG="1" # 1 = On / 0 = off - Also perform the reverse recording flow to test the audio and decrypting proc.
+SSHDEV="1" # 1 = on / 0 = off - Add below pub key to the build for dev access, do not use in production.
+SSHDEVKEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz"
 ###################################################################### Please don't change anything below unless you know what you are doing.
 ################################### Folders
 CONFIG="/boot/config.txt"
@@ -44,35 +46,35 @@ AUTO_START="$5"
 AUTO_END="$4"
 ################################### System
 #PASSWORD=$(whiptail --passwordbox "Please enter the password for the new user $USERNAME" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
-#ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | grep "$(/usr/bin/cat /etc/fstab | grep ' / ' | awk '{print $1}' | sed 's|PARTUUID=||g')" | awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
-#DEV=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
-DEV=$(lshw -short -c disk | awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
-#CHECKDRIVESIZE=$(lshw -short -c disk | grep -v "$ROOTDRIVE" | tail -n+3 | awk '{print $2,$4}')
-CHECKDRIVESIZE=$(lshw -short -c disk | tail -n+3 | awk '{print $2,$4}')
-DEVID=$(ls -la /dev/disk/by-id/ | grep "$DEV" | grep -v 'part' | awk '{print $9}' | sed 's|:0||g')
+#ROOTDRIVE=$(ls -la /dev/disk/by-partuuid/ | /usr/bin/grep "$(/usr/bin/cat /etc/fstab | /usr/bin/grep ' / ' | /usr/bin/awk '{print $1}' | sed 's|PARTUUID=||g')" | /usr/bin/awk '{print $11}' | sed "s|../../||g" | sed 's/[0-9]*//g')
+#DEV=$(/usr/bin/lshw -short -c disk | /usr/bin/grep -v "$ROOTDRIVE" | /usr/bin/awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
+DEV=$(/usr/bin/lshw -short -c disk | /usr/bin/awk '{print $2}' | sed 's|path||g' | sed -e '/^$/d')
+#CHECKDRIVESIZE=$(/usr/bin/lshw -short -c disk | /usr/bin/grep -v "$ROOTDRIVE" | tail -n+3 | /usr/bin/awk '{print $2,$4}')
+CHECKDRIVESIZE=$(/usr/bin/lshw -short -c disk | tail -n+3 | /usr/bin/awk '{print $2,$4}')
+DEVID=$(ls -la /dev/disk/by-id/ | /usr/bin/grep "$DEV" | /usr/bin/grep -v 'part' | /usr/bin/awk '{print $9}' | sed 's|:0||g')
 BLOCKSIZE=$(blockdev --getbsz "$DEV")
-USEP=$(df -h | grep "$DEV" | awk '{ print $5 }' | cut -d'%' -f1)
-USEM=$(df -h | grep "$DEV" | awk '{ print $3 }' | cut -d'%' -f1)
-LOCALSTORAGEUSED=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | awk '{print $4}' | sed 's|M||g')
+USEP=$(df -h | /usr/bin/grep "$DEV" | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'%' -f1)
+USEM=$(df -h | /usr/bin/grep "$DEV" | /usr/bin/awk '{ print $3 }' | /usr/bin/cut -d'%' -f1)
+LOCALSTORAGEUSED=$(df -Ph -BM "$LOCALSTORAGE" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')
 ################################### Network
 WANIP4=$(/usr/bin/curl -s -k -m 5 https://ipv4bot.whatismyipaddress.com)
-GATEWAY=$(ip route | grep default | awk '{print $3}')
-IFACE=$(ip r | grep "default via" | awk '{print $5}')
-ADDRESS=$(hostname -I | cut -d ' ' -f 1)
+GATEWAY=$(ip route | /usr/bin/grep default | /usr/bin/awk '{print $3}')
+IFACE=$(ip r | /usr/bin/grep "default via" | /usr/bin/awk '{print $5}')
+ADDRESS=$(hostname -I | /usr/bin/cut -d ' ' -f 1)
 ################################### Links
 ISSUES="https://github.com/WaaromZoMoeilijk/rpi-audio/issues"
 REPO="https://github.com/WaaromZoMoeilijk/rpi-audio" 
 ################################### Misc
-DATE=$(date '+%Y-%m-%d - %H:%M:%S')
-NAMEDATE=$(date '+%Y-%m-%d_%H:%M:%S')
-FILEDATE=$(date +%Y-%m-%d_%H:%M:%S)
+DATE=$(/usr/bin/date '+%Y-%m-%d - %H:%M:%S')
+NAMEDATE=$(/usr/bin/date '+%Y-%m-%d_%H:%M:%S')
+FILEDATE=$(/usr/bin/date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
-mic_count=$(arecord --list-devices | grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | grep -c '^')
-usb_count=$(find /mnt -iname '.active' | sed 's|/.active||g' | grep -c '^')
+mic_count=$(arecord --list-devices | /usr/bin/grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/grep -c '^')
+usb_count=$(find /mnt -iname '.active' | sed 's|/.active||g' | /usr/bin/grep -c '^')
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 ################################### Audio
-CARD=$(arecord -l | grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | awk '{print $2}' | sed 's|:||g')
+CARD=$(arecord -l | /usr/bin/grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/awk '{print $2}' | sed 's|:||g')
 ################################### Functions
 is_root() {
 	if [[ "$EUID" -ne 0 ]]
@@ -124,7 +126,7 @@ fatal() {
 }
 ################################### Spinner during long commands
 spinner() {
-	#printf '['
+	#/usr/bin/printf '['
 	while ps "$!" > /dev/null; do
 	/usr/bin/echo -n '⣾⣽⣻'
 	sleep '.7'
@@ -133,7 +135,7 @@ spinner() {
 }
 ###################################################################### Section B: install.sh
 is_mounted() {
-	grep "$1" /etc/mtab
+	/usr/bin/grep "$1" /etc/mtab
 }
 ###################################
 apt_install() {
@@ -153,13 +155,13 @@ apt_autoclean() {
 }
 ###################################
 install_if_not() {
-	if ! dpkg-query -W -f='${Status}' "${1}" | grep -q "ok installed"; then
+	if ! dpkg-query -W -f='${Status}' "${1}" | /usr/bin/grep -q "ok installed"; then
 	    /usr/bin/apt update -q4 & spinner_loading && RUNLEVEL=1 /usr/bin/apt install "${1}" -y
 	fi
 }
 ###################################
 is_installed() {
-	if ! dpkg-query -W -f='${Status}' "${1}" | grep -q "ok installed"; then
+	if ! dpkg-query -W -f='${Status}' "${1}" | /usr/bin/grep -q "ok installed"; then
 		warning "${1} is not installed"
 	else
 		success "${1} is installed"
@@ -181,9 +183,9 @@ rc_local() {
 		mv /etc/rc.local /etc/rc.local.backup."$DATE"
 	fi
 
-	systemctl disable rc-local.service || true
+	/usr/bin/systemctl disable rc-local.service || true
 	rm /etc/systemd/system/rc-local.service || true
-	systemctl daemon-reload || true
+	/usr/bin/systemctl daemon-reload || true
 
 /usr/bin/cat > /etc/systemd/system/rc-local.service <<EOF
 [Unit]
@@ -208,12 +210,12 @@ exit 0
 EOF
 
 	/usr/bin/chmod +x /etc/rc.local
-	systemctl daemon-reload
-	systemctl enable rc-local.service
-	systemctl start rc-local.service
+	/usr/bin/systemctl daemon-reload
+	/usr/bin/systemctl enable rc-local.service
+	/usr/bin/systemctl start rc-local.service
 	if [ -f /etc/rc.local ]; then
 		# Check if the above is succesfull
-		if /usr/bin/cat /etc/rc.local | grep -q "$GITDIR/install.sh"; then
+		if /usr/bin/cat /etc/rc.local | /usr/bin/grep -q "$GITDIR/install.sh"; then
 			success "Setting up rc.local - Created"
 		else
 			error "Setting up rc.local failed, file exists but not the proper content"
@@ -226,7 +228,7 @@ EOF
 tz_wan_ip() {
 	header "[ ==  Set timezone based on WAN IP == ]"
 	/usr/bin/timedatectl set-timezone Europe/Amsterdam &> /tmp/.tz || true
-	if "$(/usr/bin/cat /tmp/.tz)" | grep -q "Failed to connect to bus: No such file or directory"; then
+	if "$(/usr/bin/cat /tmp/.tz)" | /usr/bin/grep -q "Failed to connect to bus: No such file or directory"; then
 		warning "Timezone set failed (first install fails because of dbus dependency. Next run will set the timezone automatically)"
 	else
 		/usr/bin/curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs /usr/bin/timedatectl set-timezone && success "Timezone set" || error "Timezone set failed"
@@ -271,40 +273,44 @@ dependencies_install() {
 ################################### VDMFEC
 vdmfec_install() {
 	header "[ ==  VMDFEC == ]"
-	/usr/bin/apt list vdmfec > /tmp/.vdm 2>&1 || true
-	if "$(/usr/bin/cat /tmp/.vdm)" | grep -q installed; then
-		warning "vdmfec is already installed"
-	else
-		# 64Bit change for other arm distros
+	if ! dpkg-query -W -f='${Status}' vdmfec | /usr/bin/grep -q "ok installed"; then
+		warning "Vdmfec is not installed"
+
+		# 64Bit, change for other arm distros
 		/usr/bin/wget 'http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb' && dpkg -i 'vdmfec_1.0-2+b2_arm64.deb' && rm 'vdmfec_1.0-2+b2_arm64.deb'
-		/usr/bin/apt list vdmfec > /tmp/.vdm 2>&1 || true
-		if "$(/usr/bin/cat /tmp/.vdm)" | grep -q installed; then
-			success "vdmfec install done"
+		if ! dpkg-query -W -f='${Status}' vdmfec | /usr/bin/grep -q "ok installed"; then
+			fatal "vdmfec install failed"
 		else
-			error "vdmfec install failed"
+			success "vdmfec installed"
 		fi
+
+	else
+		success "vdmfec is already installed"
 	fi
 }
+#####
 ################################### Allow access, temp during dev
 dev_access() {
-	header "[ ==  Dev access == ]"
-	if [ -d "/root/.ssh" ]; then
-		warning "Folder .ssh exists"
-	else
-		/usr/bin/mkdir -p /root/.ssh
-		success "Folder /root/.ssh created"
-	fi
+	if [ "$SSHDEV" == "1" ]; then
+		header "[ ==  Dev access == ]"
+		if [ -d "/root/.ssh" ]; then
+			warning "Folder .ssh exists"
+		else
+			/usr/bin/mkdir -p /root/.ssh
+			success "Folder /root/.ssh created"
+		fi
 
-	if /usr/bin/cat /root/.ssh/authorized_keys | grep -q "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz"; then
-		warning "Public key exists already"
-	else
-		/usr/bin/echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1ME48x4opi86nCvc6uT7Xz4rfhzR5/EGp24Bi/C21UOyyeQ3QBIzHSSBAVZav7I8hCtgaGaNcIGydTADqOQ8lalfYL6rpIOE3J4XyReqykLJebIjw9xXbD4uBx/2KFAZFuNybCgSXJc1XKWCIZ27jNpQUapyjsxRzQD/vC4vKtZI+XzosqNjUrZDwtAqP74Q8HMsZsF7UkQ3GxtvHgql0mlO1C/UO6vcdG+Ikx/x5Teh4QBzaf6rBzHQp5TPLWXV+dIt0/G+14EQo6IR88NuAO3gCMn6n7EnPGQsUpAd4OMwwEfO+cDI+ToYRO7vD9yvJhXgSY4N++y7FZIym+ZGz" > /root/.ssh/authorized_keys && success "Pubkey added" || error "Pubkey appending failed"
+		if /usr/bin/cat /root/.ssh/authorized_keys | /usr/bin/grep -q "$SSHDEVKEY"; then
+			warning "Public key exists already"
+		else
+			/usr/bin/echo "$SSHDEVKEY" > /root/.ssh/authorized_keys && success "Pubkey added" || error "Pubkey appending failed"
+		fi
 	fi
 }
 ################################### Create user
 create_user() {
 	header "[ ==  Creating user == ]"
-	if /usr/bin/cat /etc/passwd | grep "$USERNAME"; then
+	if /usr/bin/cat /etc/passwd | /usr/bin/grep "$USERNAME"; then
 		warning "User exists"
 	else
 		/usr/bin/sudo useradd -m -p "$(openssl passwd -crypt "$PASSWORD")" "$USERNAME" && success "User added" || error "User add failed"
@@ -335,14 +341,14 @@ overclock_pi() {
 	# Please at minimum add some heat sinks to the RPI. Better to also add a FAN. thermal throtteling is in place at 75 celcius 
 	# Overclocking dynamically will only affect the temp on high load for longer periods. You can mitigate that with above.
 	header "[ ==  Overclock == ]"
-	if /usr/bin/cat /proc/cpuinfo | grep -q "Raspberry Pi 4"; then
+	if /usr/bin/cat /proc/cpuinfo | /usr/bin/grep -q "Raspberry Pi 4"; then
 		/bin/bash "$GITDIR"/scripts/overclock.sh && success "Overclock set, active on next reboot. Press shift during boot to disable" || error "Overclock set failed"
 	fi
 }
 ################################### GPG
 gpg_keys() {
 	header "[ ==  GPG keys == ]"
-	if /usr/bin/gpg1 --homedir /root/.gnupg --list-key | grep -q "${GPG_RECIPIENT}"; then
+	if /usr/bin/gpg1 --homedir /root/.gnupg --list-key | /usr/bin/grep -q "${GPG_RECIPIENT}"; then
 		warning "GPG key exist"
 	else
 		/usr/bin/echo -e "|" "${IBlue}GPG key creation" 
@@ -383,7 +389,7 @@ EOF
 		/usr/bin/gpg1 --homedir /root/.gnupg -d keydetails.asc
 		rm keydetails.asc
 
-		if /usr/bin/gpg1 --homedir /root/.gnupg --list-key | grep -q "${GPG_RECIPIENT}"; then
+		if /usr/bin/gpg1 --homedir /root/.gnupg --list-key | /usr/bin/grep -q "${GPG_RECIPIENT}"; then
 			warning "GPG key created"
 		else
 			error "GPG key creation failed" 
@@ -431,7 +437,7 @@ finished_installation_flag() {
 ################################### Audio start recording
 start_recording() {
 	header "[ ==  Start recording == ]"
-	/usr/bin/echo "" >> "$LOG_FILE_AUDIO" ; date >> "$LOG_FILE_AUDIO"
+	/usr/bin/echo "" >> "$LOG_FILE_AUDIO" ; /usr/bin/date >> "$LOG_FILE_AUDIO"
 	/usr/bin/chmod +x "$GITDIR"/scripts/*.sh && success "Set permission on git repository" || error "Failed to set permission on git repository"
 	/bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
@@ -440,9 +446,9 @@ start_recording() {
 ###################################################################### Section C: audio.sh
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
-	if pgrep 'arecord'; then
+	if p/usr/bin/grep 'arecord'; then
 		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" #LED/beep that mic is not detected ; sleep 10 && reboot
-		#ps -cx -o pid,command | awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
+		#ps -cx -o pid,command | /usr/bin/awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
 		sleep 2
 	fi
 
@@ -511,7 +517,7 @@ check_freespace_prior() {
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
-	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
+	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
 		fatal "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
 		#LED/beep that mic is not detected
 		# sleep 10 && reboot
@@ -581,19 +587,19 @@ check_double_channel() {
 }
 ##################################### Recording flow: audio-out | opusenc | /usr/bin/gpg1 | vdmfec | split/tee
 record_audio() {
-	FILEDATE=$(date '+%Y-%m-%d_%H%M')
-	/usr/bin/mkdir "$MNTPT/$(date '+%Y-%m-%d')" && success "Created $MNTPT/$(date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(date '+%Y-%m-%d')"
+	FILEDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M')
+	/usr/bin/mkdir "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')" && success "Created $MNTPT/$(/usr/bin/date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(/usr/bin/date '+%Y-%m-%d')"
 	arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
-	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
+	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(/usr/bin/date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
 	/usr/bin/gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	     --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 		 --personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
 	vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
-	tee "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
+	tee "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
 	clear
 	sleep 3
 
-	if [ -f "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" ]; then
+	if [ -f "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" ]; then
 		success "Recording is done"
 	else
 		error "Something went wrong during the recording flow"
@@ -601,7 +607,7 @@ record_audio() {
 
 	if [ "$DECRYPT_WAV_IN_DEST_FOLDER_FOR_DEBUG" == "1" ]; then
 		# Reverse Pipe
-		vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | /usr/bin/gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
+		vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | /usr/bin/gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
 	fi
 
 	# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
@@ -618,11 +624,11 @@ record_audio() {
 ###################################### Create par2 files
 create_par2() {
 	# Implement a last modified file check for the latest recording only
-	par2 create "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
+	par2 create "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" && success "Par2 file created" || error "Failed to create Par2 file"
 }
 ###################################### Verify par2 files
 verify_par2() {
-	if par2 verify "$MNTPT/$(date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | grep "All files are correct, repair is not required"; then
+	if par2 verify "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg.par2" | /usr/bin/grep "All files are correct, repair is not required"; then
 		success "Par2 verified"
 	else
 		error "Par2 verification failed"
@@ -637,7 +643,7 @@ check_freespace_post() {
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
 
-	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
+	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
 		error "Less then $MINMB MB available on usb storage directory $USEM (USB)"
 	else
 		success "More then then $MINMB MB available on usb storage directory $USEM (USB)"
@@ -666,35 +672,47 @@ sync_to_usb() {
 	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
 }
 ##################################### Unmount device
-unmout_device() {
+unmount_device() {
 	MNTPTR=$(find /mnt -iname '.active' | sed 's|/Recordings/.active||g')
-	sync ; sleep 3 ; /usr/bin/echo 
-	systemd-umount "$MNTPTR"
+	if [ -d "$MNTPTR" ]; then
+		sync		
+		/usr/bin/systemd-umount "$MNTPTR" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
+		/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
+		/usr/bin/systemctl daemon-reload 
+		/usr/bin/umount "$MNTPTR" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
+		/usr/bin/umount -l "$MNTPTR" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
+		/usr/bin/rmdir "$MNTPTR" && success "Removed directory $MNTPTR" || error "Directory removal of $MNTPTR failed, probably did not exist"
+		/usr/bin/rmdir "$MOUNT_DIR"/sd*
+		if [ -d "$MNTPTR" ]; then
+			fatal "something went wrong unmounting please check the logs"
+		else
+			success "Unmount succeeded"
+		fi
+	fi
+
+	/usr/bin/systemd-umount "$MNTPTR"
 	if [ $? -eq 0 ]; then
 		success "Systemd-unmount done"
 		# Remove folder after unmount
 		sleep 2
-		rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
+		/usr/bin/rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
 	else
 		error "Systemd-umount failed"
-		umount -l "$MNTPTR" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
-		#systemctl disable "$MOUNT_DIR-$DEVICE".mount && success "Systemctl disabled $MOUNT_DIR-$DEVICE.mount done" || error "Systemctl disabled $MOUNT_DIR-$DEVICE.mount failed"
-		#systemctl daemon-reload && success "Systemctl daemon-reload done" || error "Systemctl daemon-reload failed"
-		#systemctl reset-failed && success "Systemctl reset-failed done" || error "Systemctl reset-failed failed"
+		/usr/bin/umount -l "$MNTPTR" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
+		#/usr/bin/systemctl disable "$MOUNT_DIR-$DEVICE".mount && success "/usr/bin/systemctl disabled $MOUNT_DIR-$DEVICE.mount done" || error "/usr/bin/systemctl disabled $MOUNT_DIR-$DEVICE.mount failed"
+		#/usr/bin/systemctl daemon-reload && success "/usr/bin/systemctl daemon-reload done" || error "/usr/bin/systemctl daemon-reload failed"
+		#/usr/bin/systemctl reset-failed && success "/usr/bin/systemctl reset-failed done" || error "/usr/bin/systemctl reset-failed failed"
 		# Remove folder after unmount
 		sleep 2
-		rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
+		/usr/bin/rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
 	fi	
 
 	# test that this device has disappeared from mounted devices
-	device_mounted=$(grep -q "$DEV" /etc/mtab)
+	device_mounted=$(/usr/bin/grep -q "$DEV" /etc/mtab)
 	if [ "$device_mounted" ]; then
 		error "Failed to Un-Mount, forcing umount -l"
 		/usr/bin/echo "temp disable of unmount for dev"
-		umount -l "/dev/$DEVICE" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
-		if [ $? -eq 0 ]; then
-			rm -f "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
-		fi
+		/usr/bin/umount -l "/dev/$DEVICE" && success "umount -l done" || error "Umount -l - Not mounted double check, done"
 	else
 		success "Device not present in /etc/mtab"
 	fi
@@ -712,7 +730,7 @@ hardening() {
 
 		/usr/bin/wget -O /etc/fail2ban/jail.local https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/static/jail.local
 
-		systemctl restart fail2ban
+		/usr/bin/systemctl restart fail2ban
 
 		if [ "$FB" == "install ok installed" ]; then
 			/usr/bin/echo -e "|" "${IGreen}Fail2ban install - Done${Color_Off} |" >&2
@@ -775,16 +793,16 @@ automount() {
     sleep 2
  
 	# Fix, disable leftover systemd mounts
-	systemctl disable "mnt-$DEVICE.mount" && success "systemctl disable mnt-$DEVICE.mount" || warning "systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
-	systemctl daemon-reload && success "systemctl daemon-reload" || warning "systemctl daemon-reload"
-	systemctl reset-failed && success "systemctl reset-failed" || warning "systemctl reset-failed"
+	/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
+	/usr/bin/systemctl daemon-reload && success "/usr/bin/systemctl daemon-reload" || warning "/usr/bin/systemctl daemon-reload"
+	/usr/bin/systemctl reset-failed && success "/usr/bin/systemctl reset-failed" || warning "/usr/bin/systemctl reset-failed"
 
 	# Check old mountpoint
     is_mounted "$DEVICE" && fatal "seems /dev/$DEVICE is already mounted"
 
     # test mountpoint - it shouldn't exist
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
-		rmdir "$MOUNT_DIR/$DEVICE"  
+		/usr/bin/rmdir "$MOUNT_DIR/$DEVICE"  
 	fi
 
     [ -e "$MOUNT_DIR/$DEVICE" ] && fatal "It seems mountpoint $MOUNT_DIR/$DEVICE already exists"
@@ -808,13 +826,13 @@ automount() {
 #################################### Auto Start Function
 autostart() {
     header "[ ==  USB Auto Start Program == ]"
-    DEV=$(/usr/bin/echo "$DEVICE" | cut -c -3)
+    DEV=$(/usr/bin/echo "$DEVICE" | /usr/bin/cut -c -3)
     # Check # of partitions
-    if [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
+    if [[ $(/usr/bin/grep -c "$DEV"'[0-9]' /proc/partitions) -gt 1 ]]; then
         fatal "More then 1 parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
-    elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
+    elif [[ $(/usr/bin/grep -c "$DEV"'[0-9]' /proc/partitions) -eq 0 ]]; then
         fatal "No parition detected, please format your drive and create a single FAT32/NTFS/EXT partition and try again"
-    elif [[ $(grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
+    elif [[ $(/usr/bin/grep -c "$DEV"'[0-9]' /proc/partitions) -eq 1 ]]; then
         success "1 partition detected, checking if its been used before"
         # Check if drive is empty
         if [ -f "$(ls -I '.Trash*' -A "$MOUNT_DIR/$DEVICE")" ]; then
@@ -862,7 +880,8 @@ autostart() {
     fi
     # Start audio recording
     header "[ ==  Start recording == ]"
-    /usr/bin/echo ; "$(date)" >> "$LOG_FILE_AUDIO"
+	/usr/bin/echo >> "$LOG_FILE_AUDIO"
+    /usr/bin/date >> "$LOG_FILE_AUDIO"
     /bin/bash "$GITDIR"/scripts/audio.sh >> "$LOG_FILE_AUDIO" 2>&1
 }
 ###################################################################### Section F: auto-start program
@@ -874,13 +893,13 @@ autounload() {
 	[ "$DEVICE" ] || fatal "Failed to supply DEVICE parameter"
 
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
-		systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
-		systemctl disable "mnt-$DEVICE.mount" && success "systemctl disable mnt-$DEVICE.mount" || warning "systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
-		systemctl daemon-reload 
-		umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
-		umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
-		rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed, probably did not exist"
-		rmdir "$MOUNT_DIR"/sd*
+		/usr/bin/systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
+		/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
+		/usr/bin/systemctl daemon-reload 
+		/usr/bin/umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
+		/usr/bin/umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
+		/usr/bin/rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed, probably did not exist"
+		/usr/bin/rmdir "$MOUNT_DIR"/sd*
 		if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 			fatal "something went wrong unmounting please check the logs"
 		else
@@ -892,7 +911,7 @@ autounload() {
 
 ###################################################################### Section H: Bash colors
 print_text_in_color() {
-printf "%b%s%b\n" "$1" "$2" "$Color_Off"
+/usr/bin/printf "%b%s%b\n" "$1" "$2" "$Color_Off"
 }
 # Reset
 Color_Off='\e[0m'       # Text Reset
