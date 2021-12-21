@@ -70,25 +70,23 @@ NAMEDATE=$(/usr/bin/date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(/usr/bin/date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
 ################################### Storage
-mic_count=$(arecord --list-devices | /usr/bin/grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/grep -c '^')
+mic_count=$(/usr/bin/arecord --list-devices | /usr/bin/grep 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/grep -c '^')
 usb_count=$(find /mnt -iname '.active' | sed 's|/.active||g' | /usr/bin/grep -c '^')
 AUTO_START_FINISH=1 # Set to 0 if false; 1 if true
 ################################### Audio
-CARD=$(arecord -l | /usr/bin/grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/awk '{print $2}' | sed 's|:||g')
+CARD=$(/usr/bin/arecord -l | /usr/bin/grep -m 1 'USB Microphone\|USB\|usb\|Usb\|Microphone\|MICROPHONE\|microphone\|mic\|Mic\|MIC' | /usr/bin/awk '{print $2}' | sed 's|:||g')
 ################################### Functions
 is_root() {
-	if [[ "$EUID" -ne 0 ]]
-	then
-	return 1
+	if [[ "$EUID" -ne 0 ]];	then
+		return 1
 	else
-	return 0
+		return 0
 	fi
 }
 ###################################
 root_check() {
 	if ! is_root; then
 		fatal "Failed, script needs sudo permissions for now"
-		exit 1
 	fi
 }
 ###################################
@@ -129,7 +127,7 @@ spinner() {
 	#/usr/bin/printf '['
 	while ps "$!" > /dev/null; do
 	/usr/bin/echo -n '⣾⣽⣻'
-	sleep '.7'
+	/usr/bin/sleep '.7'
 	done
 	#/usr/bin/echo ']'
 }
@@ -184,7 +182,7 @@ rc_local() {
 	fi
 
 	/usr/bin/systemctl disable rc-local.service || true
-	rm /etc/systemd/system/rc-local.service || true
+	/usr/bin/rm /etc/systemd/system/rc-local.service || true
 	/usr/bin/systemctl daemon-reload || true
 
 /usr/bin/cat > /etc/systemd/system/rc-local.service <<EOF
@@ -277,7 +275,7 @@ vdmfec_install() {
 		warning "Vdmfec is not installed"
 
 		# 64Bit, change for other arm distros
-		/usr/bin/wget 'http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb' && dpkg -i 'vdmfec_1.0-2+b2_arm64.deb' && rm 'vdmfec_1.0-2+b2_arm64.deb'
+		/usr/bin/wget 'http://ftp.de.debian.org/debian/pool/main/v/vdmfec/vdmfec_1.0-2+b2_arm64.deb' && dpkg -i 'vdmfec_1.0-2+b2_arm64.deb' && /usr/bin/rm 'vdmfec_1.0-2+b2_arm64.deb'
 		if ! dpkg-query -W -f='${Status}' vdmfec | /usr/bin/grep -q "ok installed"; then
 			fatal "vdmfec install failed"
 		else
@@ -320,7 +318,7 @@ create_user() {
 git_clone_pull() {
 	header "[ ==  Clone/pull git repo == ]"
 	if [ -d "$GITDIR" ]; then
-		#rm -r "$GITDIR"
+		#/usr/bin/rm -r "$GITDIR"
 		cd "$GITDIR" && success "Change dir to Git dir"  || error "Changing to Git dir failed"
 		/usr/bin/git pull && success "Git repository updated"  || error "Git repository update failed"
 	else
@@ -385,9 +383,9 @@ EOF
 		/usr/bin/gpg1 --homedir /root/.gnupg -e -a -r "${GPG_RECIPIENT}" keydetails
 
 		# Delete the options and decrypt the original to stdout.
-		rm keydetails
+		/usr/bin/rm keydetails
 		/usr/bin/gpg1 --homedir /root/.gnupg -d keydetails.asc
-		rm keydetails.asc
+		/usr/bin/rm keydetails.asc
 
 		if /usr/bin/gpg1 --homedir /root/.gnupg --list-key | /usr/bin/grep -q "${GPG_RECIPIENT}"; then
 			warning "GPG key created"
@@ -403,7 +401,7 @@ setup_usb() {
 		warning "/etc/udev/rules.d/85-usb-loader.rules exists"
 	fi
 	
-	rm -r /etc/udev/rules.d/85-usb-loader.rules
+	/usr/bin/rm -r /etc/udev/rules.d/85-usb-loader.rules
 /usr/bin/cat >> /etc/udev/rules.d/85-usb-loader.rules <<EOF
 ACTION=="add", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh ADD %k \$env{ID_FS_TYPE}"
 ACTION=="remove", KERNEL=="sd*[0-9]", SUBSYSTEMS=="usb", RUN+="$GITDIR/scripts/usb-initloader.sh %k"
@@ -447,13 +445,13 @@ start_recording() {
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
 	if p/usr/bin/grep 'arecord'; then
-		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" #LED/beep that mic is not detected ; sleep 10 && reboot
+		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
 		#ps -cx -o pid,command | /usr/bin/awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
-		sleep 2
+		/usr/bin/sleep 2
 	fi
 
 	if [ -f /tmp/.recording.lock ]; then
-		rm /tmp/.recording.lock
+		/usr/bin/rm /tmp/.recording.lock
 	fi
 }
 ##################################### In progress flag
@@ -475,7 +473,7 @@ check_usb_drives() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $usb_count in
-	    0) fatal "No active USB storage device has been found, please reinsert and run again" #LED/beep that mic is not detected && sleep 10 && reboot
+	    0) fatal "No active USB storage device has been found, please reinsert and run again" #LED/beep that mic is not detected && /usr/bin/sleep 10 && reboot
 	    ;;
 	    1) mountvar
 	    ;;
@@ -489,11 +487,11 @@ storage_writable_check() {
 	touch "$MNTPT"/.test
 	if [ -f "$MNTPT/.test" ]; then
 		success "Storage is writable"
-		rm "$MNTPT"/.test
+		/usr/bin/rm "$MNTPT"/.test
 	else
 		error "Storage is not writable, exiting."
 		#LED/beep that mic is not detected
-		# sleep 10 && reboot
+		# /usr/bin/sleep 10 && reboot
 		exit 1
 	fi
 }
@@ -503,7 +501,7 @@ check_freespace_prior() {
 	if [ "$LOCALSTORAGEUSED" -le "$MINMB" ]; then
 		error "Less then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 		#LED/beep that mic is not detected
-		# sleep 10 && reboot		
+		# /usr/bin/sleep 10 && reboot		
 	else
 		success "More then $MINMB MB available on the local storage directory $LOCALSTORAGEUSED MB (Not USB)"
 	fi      
@@ -512,7 +510,7 @@ check_freespace_prior() {
 	if [ "$USEP" -ge "$MAXPCT" ]; then
 		error "Drive has less then 10% storage capacity available, please free up space."
 		#LED/beep that mic is not detected
-		# sleep 10 && reboot
+		# /usr/bin/sleep 10 && reboot
 	else
 		success "Drive has more then 10% capacity available, proceeding"
 	fi
@@ -520,7 +518,7 @@ check_freespace_prior() {
 	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
 		fatal "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
 		#LED/beep that mic is not detected
-		# sleep 10 && reboot
+		# /usr/bin/sleep 10 && reboot
 	else
 		success "More then then $MINMB MB available on usb storage directory $USEM (USB)"
 	fi
@@ -534,23 +532,23 @@ check_usb_mic() {
 	# if 1 lines - continue
 	# if any other number of lines - exit
 	case $mic_count in  
-	    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; sleep 10 && reboot
+	    0) fatal "No USB Microphone detected! Please plug one in now, and restart or replug USB" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
 	    ;;  
 	    1) success "USB Microphone detected!"
 	    ;;  
-	    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; sleep 10 && reboot
+	    *) fatal "More then 1 USB Mic found this is not yet supported" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
 	    ;;  
 	esac
 }
 ##################################### Set volume and unmute
 set_vol() {
 	header "[ ==  Set volume and unmute == ]"
-	amixer -q -c "$CARD" set Mic 80% unmute && success "Mic input volume set to 80% and is unmuted" || fatal "Failed to set input volume" # ; LED/beep that mic is not detected
+	/usr/bin/amixer -q -c "$CARD" set Mic 80% unmute && success "Mic input volume set to 80% and is unmuted" || fatal "Failed to set input volume" # ; LED/beep that mic is not detected
 }
 ##################################### Test recording
 test_rec() {
 	header "[ ==  Test recording == ]"
-	arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav && success "Test recording is done" || fatal "Test recording failed" # ; LED/beep that mic is not detected		
+	/usr/bin/arecord -q -f S16_LE -d 3 -r 48000 --device="hw:$CARD,0" /tmp/test-mic.wav && success "Test recording is done" || fatal "Test recording failed" # ; LED/beep that mic is not detected		
 }
 ##################################### Check recording file size
 check_rec_filesize() {
@@ -560,21 +558,21 @@ check_rec_filesize() {
 	else
 		error "File is empty! Unable to record."
 		#LED/beep that mic is not detected
-		# sleep 10 && reboot		
+		# /usr/bin/sleep 10 && reboot		
 	fi
 }
 ##################################### Test playback
 test_playback() {
 	header "[ ==  Testing playback of the recording == ]"
-	aplay /tmp/test-mic.wav
+	/usr/bin/aplay  /tmp/test-mic.wav
 	if [ $? -eq 0 ]; then
 		success "Playback is ok"
-		rm -r /tmp/test-mic.wav
+		/usr/bin/rm -r /tmp/test-mic.wav
 	else
 		error "Playback failed"
-		rm -r /tmp/test-mic.wav\
+		/usr/bin/rm -r /tmp/test-mic.wav\
 		#LED/beep that mic is not detected
-		# sleep 10 && reboot		
+		# /usr/bin/sleep 10 && reboot		
 	fi
 }
 ##################################### Check for double channel
@@ -589,7 +587,7 @@ check_double_channel() {
 record_audio() {
 	FILEDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M')
 	/usr/bin/mkdir "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')" && success "Created $MNTPT/$(/usr/bin/date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(/usr/bin/date '+%Y-%m-%d')"
-	arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
+	/usr/bin/arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
 	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(/usr/bin/date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
 	/usr/bin/gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	     --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
@@ -597,7 +595,7 @@ record_audio() {
 	vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
 	tee "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
 	clear
-	sleep 3
+	/usr/bin/sleep 3
 
 	if [ -f "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" ]; then
 		success "Recording is done"
@@ -694,7 +692,7 @@ unmount_device() {
 	if [ $? -eq 0 ]; then
 		success "Systemd-unmount done"
 		# Remove folder after unmount
-		sleep 2
+		/usr/bin/sleep 2
 		/usr/bin/rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
 	else
 		error "Systemd-umount failed"
@@ -703,7 +701,7 @@ unmount_device() {
 		#/usr/bin/systemctl daemon-reload && success "/usr/bin/systemctl daemon-reload done" || error "/usr/bin/systemctl daemon-reload failed"
 		#/usr/bin/systemctl reset-failed && success "/usr/bin/systemctl reset-failed done" || error "/usr/bin/systemctl reset-failed failed"
 		# Remove folder after unmount
-		sleep 2
+		/usr/bin/sleep 2
 		/usr/bin/rmdir "$MNTPTR" && success "$MNTPTR folder removed" || error "$MNTPTR folder remove failed"
 	fi	
 
@@ -790,7 +788,7 @@ automount() {
     header "[ ==  USB Auto Mount $DATE == ]"
 
     # Allow time for device to be added
-    sleep 2
+    /usr/bin/sleep 2
  
 	# Fix, disable leftover systemd mounts
 	/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"

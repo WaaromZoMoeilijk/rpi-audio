@@ -6,7 +6,7 @@ source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/m
 # 1 = ON / 0 = OFF
 DEBUG=1
 debug_mode
-sleep 5
+sleep 2
 ##################################### Check if script runs as root
 root_check
 ##################################### Stop all recordings just to be sure
@@ -44,7 +44,7 @@ backup_recordings
 ##################################### Sync logs to USB
 sync_to_usb
 ##################################### Unmount device
-unmount_device
+#unmount_device
 ##################################### In progress flag
 rm /tmp/.recording.lock
 ##################################### Finished
