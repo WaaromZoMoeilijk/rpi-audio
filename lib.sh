@@ -444,7 +444,7 @@ start_recording() {
 ###################################################################### Section C: audio.sh
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
-	if p/usr/bin/grep 'arecord'; then
+	if /usr/bin/grep 'arecord'; then
 		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
 		#ps -cx -o pid,command | /usr/bin/awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
 		/usr/bin/sleep 2
@@ -665,9 +665,10 @@ backup_recordings() {
 }
 ##################################### Sync logs to USB
 sync_to_usb() {
-	/usr/bin/mkdir -p "$MNTPT/Logs-$NAMEDATE"
-	rsync -aAX /var/tmp/dietpi/logs/ "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
-	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs-$NAMEDATE/" && success "Log files synced to USB device" || warning "Log file syncing failed or had some errors, possible with rsync"
+	/usr/bin/mkdir -p "$MNTPT/Logs/OS"	
+	/usr/bin/mkdir -p "$MNTPT/Logs/$NAMEDATE"
+	rsync -aAX --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors, possible with rsync"
+	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs/$NAMEDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors, possible with rsync"
 }
 ##################################### Unmount device
 unmount_device() {
@@ -891,13 +892,19 @@ autounload() {
 	[ "$DEVICE" ] || fatal "Failed to supply DEVICE parameter"
 
 	if [ -d "$MOUNT_DIR/$DEVICE" ]; then
-		/usr/bin/systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
-		/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
-		/usr/bin/systemctl daemon-reload 
-		/usr/bin/umount "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
-		/usr/bin/umount -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
+
+		/usr/bin/umount -q "$MOUNT_DIR/$DEVICE" && success "Unmount succeeded" || warning "Unmounting failed, probably did not exist"
+		/usr/bin/umount -q -l "$MOUNT_DIR/$DEVICE" && success "Unmounted -l succeeded" || warning "Unmounting -l failed, probably did not exist"
+		
+		if systemd-mount --list | grep -q "$DEVICE"; then
+			/usr/bin/systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
+			/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
+			/usr/bin/systemctl daemon-reload 
+		fi
+
 		/usr/bin/rmdir "$MOUNT_DIR/$DEVICE" && success "Removed directory $MOUNT_DIR/$DEVICE" || error "Directory removal of $MOUNT_DIR/$DEVICE failed, probably did not exist"
-		/usr/bin/rmdir "$MOUNT_DIR"/sd*
+		find "$MOUNT_DIR" -type d -iname "sd*" -exec rmdir {} \;
+
 		if [ -d "$MOUNT_DIR/$DEVICE" ]; then
 			fatal "something went wrong unmounting please check the logs"
 		else
