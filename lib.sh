@@ -668,8 +668,8 @@ sync_to_usb() {
 	/usr/bin/mkdir -p "$MNTPT/Logs/OS"	
 	/usr/bin/mkdir -p "$MNTPT/Logs/$FOLDERDATE"
 	/usr/bin/chown -R "$USER":"$USER" "$MNTPT"
-	rsync -aAX --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors - USB"
-	rsync -aAX "/var/log/{usb*,audio*}" "$MNTPT/Logs/$FOLDERDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
+	/usr/bin/rsync -rltDvz --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors - USB"
+	/usr/bin/rsync -rltDvz "/var/log/{usb*,audio*}" "$MNTPT/Logs/$FOLDERDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
 	# Ext4 linux partition for use on other linux systems, fix
 	/usr/bin/chmod -R 777 "$MNTPT"
 	/usr/bin/chown -R "$USER":"$USER" "$MNTPT"
