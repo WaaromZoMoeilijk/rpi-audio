@@ -444,9 +444,9 @@ start_recording() {
 ###################################################################### Section C: audio.sh
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
-	if /usr/bin/grep 'arecord'; then
-		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" #LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
-		#ps -cx -o pid,command | /usr/bin/awk '$2 == "arecord" { print $1 }' | xargs kill -INT ; wait
+	if /usr/bin/pgrep 'arecord'; then
+		pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" 
+		#LED/beep that mic is not detected ; /usr/bin/sleep 10 && reboot
 		/usr/bin/sleep 2
 	fi
 
@@ -792,8 +792,12 @@ automount() {
     /usr/bin/sleep 2
  
 	# Fix, disable leftover systemd mounts
-	/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
-	/usr/bin/systemctl daemon-reload && success "/usr/bin/systemctl daemon-reload" || warning "/usr/bin/systemctl daemon-reload"
+	if systemd-mount --list | grep -q "$DEVICE"; then
+		/usr/bin/systemd-umount "$MOUNT_DIR/$DEVICE" && success "Systemd-unmounted succeeded" || warning "Systemd-unmounted failed, probably did not exist"
+		/usr/bin/systemctl disable "mnt-$DEVICE.mount" && success "/usr/bin/systemctl disable mnt-$DEVICE.mount" || warning "/usr/bin/systemctl disable mnt-$DEVICE.mount failed, probably did not exist"
+		/usr/bin/systemctl daemon-reload 
+	fi
+
 	/usr/bin/systemctl reset-failed && success "/usr/bin/systemctl reset-failed" || warning "/usr/bin/systemctl reset-failed"
 
 	# Check old mountpoint
