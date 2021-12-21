@@ -66,6 +66,7 @@ ISSUES="https://github.com/WaaromZoMoeilijk/rpi-audio/issues"
 REPO="https://github.com/WaaromZoMoeilijk/rpi-audio" 
 ################################### Misc
 DATE=$(/usr/bin/date '+%Y-%m-%d - %H:%M:%S')
+FOLDERDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M')
 NAMEDATE=$(/usr/bin/date '+%Y-%m-%d_%H:%M:%S')
 FILEDATE=$(/usr/bin/date +%Y-%m-%d_%H:%M:%S)
 UFWSTATUS=$(/usr/sbin/ufw status)
@@ -308,7 +309,7 @@ dev_access() {
 ################################### Create user
 create_user() {
 	header "[ ==  Creating user == ]"
-	if /usr/bin/cat /etc/passwd | /usr/bin/grep "$USERNAME"; then
+	if /usr/bin/cat /etc/passwd | /usr/bin/grep -q "$USERNAME"; then
 		warning "User exists"
 	else
 		/usr/bin/sudo useradd -m -p "$(openssl passwd -crypt "$PASSWORD")" "$USERNAME" && success "User added" || error "User add failed"
@@ -667,11 +668,13 @@ backup_recordings() {
 ##################################### Sync logs to USB
 sync_to_usb() {
 	/usr/bin/mkdir -p "$MNTPT/Logs/OS"	
-	/usr/bin/mkdir -p "$MNTPT/Logs/$NAMEDATE"
+	/usr/bin/mkdir -p "$MNTPT/Logs/$FOLDERDATE"
+	/usr/bin/chown -R "$USER":"$USER" "$MNTPT"
 	rsync -aAX --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors - USB"
-	rsync -aAX /var/log/{usb*,audio*} "$MNTPT/Logs/$NAMEDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
+	rsync -aAX "/var/log/{usb*,audio*}" "$MNTPT/Logs/$FOLDERDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
 	# Ext4 linux partition for use on other linux systems, fix
 	/usr/bin/chmod -R 777 "$MNTPT"
+	/usr/bin/chown -R "$USER":"$USER" "$MNTPT"
 }
 ##################################### Unmount device
 unmount_device() {
