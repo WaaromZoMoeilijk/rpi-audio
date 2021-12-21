@@ -669,7 +669,7 @@ sync_to_usb() {
 	/usr/bin/mkdir -p "$MNTPT/Logs/$FOLDERDATE"
 	/usr/bin/chown -R "$USER":"$USER" "$MNTPT"
 	/usr/bin/rsync -rltDvz --exclude='dietpi-ramlog_store' /var/tmp/dietpi/logs/ "$MNTPT/Logs/OS/" && success "OS Log files synced to USB device" || warning "OS Log file syncing failed or had some errors - USB"
-	/usr/bin/rsync -rltDvz "/var/log/{usb*,audio*}" "$MNTPT/Logs/$FOLDERDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
+	/usr/bin/rsync -rltDvz /var/log/{usb*,audio*} "$MNTPT/Logs/$FOLDERDATE/" && success "APP Log files synced to USB device" || warning "APP Log file syncing failed or had some errors - USB"
 	# Ext4 linux partition for use on other linux systems, fix
 	/usr/bin/chmod -R 777 "$MNTPT"
 	/usr/bin/chown -R "$USER":"$USER" "$MNTPT"
@@ -824,12 +824,13 @@ automount() {
     case "$FILESYSTEM" in
         vfat) systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Mounted VFAT partition" || fatal "Failed mounting VFAT parition"
               ;;
-        ntfs) fatal "NTFS is currently not supported, please reformat to FAT after a backup" #systemd-mount -t auto -o uid="$USER",gid="$USER",errors=continue "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting NTFS partition" 
+        ntfs) systemd-mount -t auto -o uid="$USER",gid="$USER",errors=continue "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting NTFS partition" 
               ;;
         ext*) systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Mounted EXT partition" || fatal "Failed mounting EXT partition"
               ;;	
      esac
 } 
+#fatal "NTFS is currently not supported, please reformat to FAT after a backup" #
 #################################### Auto Start Function
 autostart() {
     header "[ ==  USB Auto Start Program == ]"
