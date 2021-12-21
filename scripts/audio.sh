@@ -1,10 +1,10 @@
 #!/bin/bash
-# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181,SC2129,SC2012
 ##################################### Variables & functions
 source <(curl -sL https://raw.githubusercontent.com/WaaromZoMoeilijk/rpi-audio/main/lib.sh) ; wait
 ##################################### Check for errors + debug code and abort if something isn't right
 # 1 = ON / 0 = OFF
-DEBUG=1
+DEBUG=0
 debug_mode
 sleep 2
 ##################################### Check if script runs as root

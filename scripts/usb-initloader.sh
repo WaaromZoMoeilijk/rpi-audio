@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181
+# shellcheck disable=SC2034,SC1090,SC1091,SC2010,SC2002,SC2015,SC2181,SC2129,SC2012
 # this script uses udev rules and
 # is initiated when usb device is inserted or removed
 #
