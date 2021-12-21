@@ -446,7 +446,7 @@ start_recording() {
 ##################################### Stop all recordings just to be sure
 stop_all_recordings() {
 	if /usr/bin/pgrep 'arecord'; then
-		/usr/bin/pkill  -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" 
+		/usr/bin/pkill -2 'arecord' && success "SIGINT send for arecord" || fatal "Failed to SIGINT arecord" 
 		#LED/beep that mic is not detected ; /usr/bin/sleep 10 && /usr/sbin/reboot 
 		/usr/bin/sleep 2
 	fi
@@ -589,11 +589,11 @@ record_audio() {
 	FILEDATE=$(/usr/bin/date '+%Y-%m-%d_%H%M')
 	/usr/bin/mkdir "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')" && success "Created $MNTPT/$(/usr/bin/date '+%Y-%m-%d')" || error "Failed to create $MNTPT/$(/usr/bin/date '+%Y-%m-%d')"
 	/usr/bin/arecord -q -f S16_LE -d 0 -r 48000 --device="hw:$CARD,0" | \
-	opusenc --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(/usr/bin/date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
-	/usr/bin/gpg1 --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
+	opusenc --quiet --vbr --bitrate 128 --comp 10 --expect-loss 8 --framesize 60 --title "$TITLE" --artist "$ARTIST" --date "$(/usr/bin/date +%Y-%M-%d)" --album "$ALBUM" --genre "$GENRE" - - | \
+	/usr/bin/gpg1 --no-tty --homedir /root/.gnupg --encrypt --recipient "${GPG_RECIPIENT}" --sign --verbose --armour --force-mdc --compress-level 0 --compress-algo none \
 	     --no-emit-version --no-random-seed-file --no-secmem-warning --personal-cipher-preferences AES256 --personal-digest-preferences SHA512 \
 		 --personal-compress-preferences none --cipher-algo AES256 --digest-algo SHA512 | \
-	vdmfec -v -b "$BLOCKSIZE" -n 32 -k 24 | \
+	vdmfec -b "$BLOCKSIZE" -n 32 -k 24 | \
 	tee "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" 
 	clear
 	/usr/bin/sleep 3
@@ -606,11 +606,11 @@ record_audio() {
 
 	if [ "$DECRYPT_WAV_IN_DEST_FOLDER_FOR_DEBUG" == "1" ]; then
 		# Reverse Pipe
-		vdmfec -d -v -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | /usr/bin/gpg1 --homedir /root/.gnupg --decrypt > "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
+		vdmfec -d -b "$BLOCKSIZE" -n 32 -k 24 "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.wav.gpg" | /usr/bin/gpg1 --no-tty --homedir /root/.gnupg --decrypt > "$MNTPT/$(/usr/bin/date '+%Y-%m-%d')/$FILEDATE.decrypted.wav"
 	fi
 
 	# SIGINT arecord - control + c equivilant. Used to end the arecord cmd and continue the pipe. Triggered when UPS mains is unplugged.
-	#/usr/bin/pkill  -2 'arecord'
+	#/usr/bin/pkill -2 'arecord'
 
 	# Error finding card
 	# ALSA lib pcm_hw.c:1829:(_snd_pcm_hw_open) Invalid value for card
