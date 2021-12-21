@@ -824,13 +824,12 @@ automount() {
     case "$FILESYSTEM" in
         vfat) systemd-mount -t vfat -o utf8,uid="$USER",gid="$USER" "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Mounted VFAT partition" || fatal "Failed mounting VFAT parition"
               ;;
-        ntfs) systemd-mount -t auto -o uid="$USER",gid="$USER",errors=continue "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting NTFS partition" 
+        ntfs) fatal "NTFS is currently not supported, please reformat to FAT after a backup" #systemd-mount -t auto -o uid="$USER",gid="$USER",errors=continue "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" || fatal "Failed mounting NTFS partition" 
               ;;
         ext*) systemd-mount -t auto -o sync,noatime "/dev/$DEVICE" "$MOUNT_DIR/$DEVICE" && success "Mounted EXT partition" || fatal "Failed mounting EXT partition"
               ;;	
      esac
 } 
-#fatal "NTFS is currently not supported, please reformat to FAT after a backup" #
 #################################### Auto Start Function
 autostart() {
     header "[ ==  USB Auto Start Program == ]"
