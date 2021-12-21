@@ -226,7 +226,7 @@ EOF
 tz_wan_ip() {
 	header "[ ==  Set timezone based on WAN IP == ]"
 	/usr/bin/timedatectl set-timezone Europe/Amsterdam &> /tmp/.tz || true
-	if "$(/usr/bin/cat /tmp/.tz)" | /usr/bin/grep -q "Failed to connect to bus: No such file or directory"; then
+	if /usr/bin/cat /tmp/.tz | /usr/bin/grep -q "Failed to connect to bus: No such file or directory"; then
 		warning "Timezone set failed (first install fails because of dbus dependency. Next run will set the timezone automatically)"
 	else
 		/usr/bin/curl -s --location --request GET 'https://api.ipgeolocation.io/timezone?apiKey=bbebedbbace2445386c258c0a472df1c' | jq '.timezone' | xargs /usr/bin/timedatectl set-timezone && success "Timezone set" || error "Timezone set failed"
@@ -516,11 +516,11 @@ check_freespace_prior() {
 	fi
 
 	if [ "$(df -Ph -BM "$MNTPT" | tail -1 | /usr/bin/awk '{print $4}' | sed 's|M||g')" -le "$MINMB" ]; then
-		fatal "Less then $MINMB MB available on usb storage directory $USEM MB (USB)"
+		fatal "Less then $MINMB MB available on usb storage directory: used: $USEM (USB)"
 		#LED/beep that mic is not detected
 		# /usr/bin/sleep 10 && reboot
 	else
-		success "More then then $MINMB MB available on usb storage directory $USEM (USB)"
+		success "More then $MINMB MB available on usb storage directory, used: $USEM (USB)"
 	fi
 }
 ##################################### Check for USB Mic
